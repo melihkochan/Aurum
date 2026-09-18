@@ -24,12 +24,7 @@ export const TotalNetWorth: React.FC<TotalNetWorthProps> = ({ onOpenAddModal }) 
 
 
   const isPositive = currentPeriodPerformance.isPositive;
-
-  // Format integer and fractional parts separately based on chosen currency
   const locale = currencyCode === 'USD' ? 'en-US' : currencyCode === 'EUR' ? 'de-DE' : 'tr-TR';
-  const integerPart = Math.floor(displayNetWorth).toLocaleString(locale);
-  const fracDigits = Math.round((displayNetWorth % 1) * 100).toString().padStart(2, '0');
-  const decimalPart = currencyCode === 'USD' ? `.${fracDigits}` : `,${fracDigits}`;
 
   const quickActions: { label: string; shortLabel: string; assetKey: AssetKey; image: string }[] = [
     { label: 'Gram Altın', shortLabel: 'Gram', assetKey: 'gramGold', image: ASSET_IMAGES.gramGold },
@@ -69,20 +64,36 @@ export const TotalNetWorth: React.FC<TotalNetWorthProps> = ({ onOpenAddModal }) 
             </button>
           </div>
 
-          {/* Huge clean typography inspired by Reference 1 & 2 */}
+          {/* Huge clean typography with rolling counter animation */}
           <div className="flex items-baseline pt-0.5">
             {isBalanceHidden ? (
               <span className="font-display text-4xl sm:text-6xl text-zinc-500 font-extrabold tracking-wider">{currencySymbol}••••••••</span>
             ) : (
-              <div className="flex items-baseline flex-wrap">
-                <span className="font-display text-3xl sm:text-5xl font-semibold text-[#F5C042] mr-2">{currencySymbol}</span>
-                <span className="font-display text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white tabular-nums">
-                  <AnimatedNumber value={displayNetWorth} duration={600} formatFn={() => integerPart} />
-                </span>
-                <span className="font-display text-2xl sm:text-4xl font-semibold text-zinc-400 ml-1 tabular-nums">
-                  {decimalPart} <span className="text-xs sm:text-sm text-zinc-500 uppercase tracking-widest font-mono ml-1.5">{currencyCode}</span>
-                </span>
-              </div>
+              <AnimatedNumber
+                value={displayNetWorth}
+                cacheKey="dashboard_total_net_worth"
+                duration={750}
+                highlightOnChange
+                render={({ integerPart, decimalPart, direction }) => (
+                  <div className={`flex items-baseline flex-wrap transition-all duration-300 ${
+                    direction === 'down' 
+                      ? 'text-rose-200 drop-shadow-[0_0_12px_rgba(244,63,94,0.35)]' 
+                      : direction === 'up' 
+                      ? 'text-emerald-200 drop-shadow-[0_0_12px_rgba(16,185,129,0.35)]' 
+                      : 'text-white'
+                  }`}>
+                    <span className="font-display text-3xl sm:text-5xl font-semibold text-[#F5C042] mr-2">
+                      {currencySymbol}
+                    </span>
+                    <span className="font-display text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight tabular-nums">
+                      {integerPart}
+                    </span>
+                    <span className="font-display text-2xl sm:text-4xl font-semibold text-zinc-400 ml-1 tabular-nums">
+                      {currencyCode === 'USD' ? `.${decimalPart}` : `,${decimalPart}`} <span className="text-xs sm:text-sm text-zinc-500 uppercase tracking-widest font-mono ml-1.5">{currencyCode}</span>
+                    </span>
+                  </div>
+                )}
+              />
             )}
           </div>
 

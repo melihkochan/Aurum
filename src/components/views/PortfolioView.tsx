@@ -17,6 +17,7 @@ import { ASSET_IMAGES } from '../ui/AssetIcon';
 import { AssetDetailModal } from '../assets/AssetDetailModal';
 import { AccountDetailModal } from '../modals/AccountDetailModal';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
+import { AnimatedNumber } from '../ui/AnimatedNumber';
 
 interface PortfolioViewProps {
   onOpenAddModal: (assetKey?: string) => void;
@@ -95,7 +96,13 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({ onOpenAddModal }) 
               <span className="w-2 h-2 rounded-full bg-[#F5C042] shadow-[0_0_8px_#F5C042]" />
             </div>
             <div className="text-2xl sm:text-3xl font-black text-white tracking-tight tabular-nums mt-1.5">
-              {formatMoney(totalNetWorth)}
+              <AnimatedNumber
+                value={totalNetWorth}
+                cacheKey="portfolio_total_net_worth"
+                duration={750}
+                formatFn={(val) => formatMoney(val)}
+                highlightOnChange
+              />
             </div>
           </div>
           <div className="pt-3 mt-3 border-t border-white/[0.06] flex items-center justify-between text-[11px]">
@@ -114,7 +121,13 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({ onOpenAddModal }) 
               <Layers className="w-3.5 h-3.5 text-zinc-400" />
             </div>
             <div className="text-2xl sm:text-3xl font-black text-white tracking-tight tabular-nums mt-1.5">
-              {formatMoney(totalInvestmentsValue)}
+              <AnimatedNumber
+                value={totalInvestmentsValue}
+                cacheKey="portfolio_investments_value"
+                duration={750}
+                formatFn={(val) => formatMoney(val)}
+                highlightOnChange
+              />
             </div>
           </div>
           <div className="pt-3 mt-3 border-t border-white/[0.06] flex items-center justify-between text-[11px]">
@@ -136,7 +149,13 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({ onOpenAddModal }) 
               <Building2 className="w-3.5 h-3.5 text-zinc-400" />
             </div>
             <div className="text-2xl sm:text-3xl font-black text-white tracking-tight tabular-nums mt-1.5">
-              {formatMoney(totalBankBalances)}
+              <AnimatedNumber
+                value={totalBankBalances}
+                cacheKey="portfolio_bank_balances"
+                duration={750}
+                formatFn={(val) => formatMoney(val)}
+                highlightOnChange
+              />
             </div>
           </div>
           <div className="pt-3 mt-3 border-t border-white/[0.06] flex items-center justify-between text-[11px]">
@@ -157,7 +176,14 @@ export const PortfolioView: React.FC<PortfolioViewProps> = ({ onOpenAddModal }) 
               </span>
             </div>
             <div className="text-2xl sm:text-3xl font-black text-[#F3C969] tracking-tight tabular-nums mt-1.5">
-              {totalGoldGrams.toLocaleString('tr-TR')} <span className="text-base font-semibold">Gram</span>
+              <AnimatedNumber
+                value={totalGoldGrams}
+                cacheKey="portfolio_gold_grams"
+                duration={750}
+                decimals={2}
+                formatFn={(val) => `${val.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Gram`}
+                highlightOnChange
+              />
             </div>
           </div>
           <div className="pt-3 mt-3 border-t border-white/[0.06] flex items-center justify-between text-[11px]">

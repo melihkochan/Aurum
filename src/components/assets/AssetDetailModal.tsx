@@ -22,6 +22,7 @@ import type { AssetAllocationItem } from '../../context/PortfolioContext';
 import type { Transaction } from '../../services/portfolio/types';
 import { ASSET_IMAGES } from '../ui/AssetIcon';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
+import { AnimatedNumber } from '../ui/AnimatedNumber';
 import { formatCurrencyInput, parseCurrencyInput, getCurrencyLocale } from '../../utils/formatters';
 
 interface AssetDetailModalProps {
@@ -253,10 +254,24 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
                 Portföydeki Güncel Değer
               </span>
               <div className="text-2xl sm:text-3xl font-black text-white tracking-tight tabular-nums">
-                {formatMoney(currentAsset.currentValue)}
+                <AnimatedNumber
+                  value={currentAsset.currentValue}
+                  cacheKey={`asset_val_${currentAsset.key}`}
+                  duration={750}
+                  formatFn={(val) => formatMoney(val)}
+                  highlightOnChange
+                />
               </div>
               <div className="text-xs text-zinc-400 font-semibold mt-1 flex items-center gap-2">
-                <span className="text-white font-bold">{currentAsset.quantity.toLocaleString('tr-TR')} {def.unitNameTr} mevcut</span>
+                <span className="text-white font-bold">
+                  <AnimatedNumber
+                    value={currentAsset.quantity}
+                    cacheKey={`asset_qty_${currentAsset.key}`}
+                    decimals={0}
+                    duration={600}
+                    formatFn={(val) => `${Number(val.toFixed(2)).toLocaleString('tr-TR')} ${def.unitNameTr} mevcut`}
+                  />
+                </span>
                 <span className="text-zinc-600">•</span>
                 <span className="text-[#E5B85C]">%{currentAsset.percentage.toFixed(1)} Portföy Payı</span>
               </div>
@@ -268,9 +283,24 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
               </span>
               <div className={`flex items-center gap-1.5 text-base sm:text-lg font-black tabular-nums ${isProfit ? 'text-emerald-400' : 'text-rose-400'}`}>
                 {isProfit ? <TrendingUp className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
-                <span>{isProfit ? '+' : ''}{formatMoney(currentAsset.totalProfitLoss)}</span>
+                <span>
+                  {isProfit ? '+' : ''}
+                  <AnimatedNumber
+                    value={currentAsset.totalProfitLoss}
+                    cacheKey={`asset_pnl_${currentAsset.key}`}
+                    duration={750}
+                    formatFn={(val) => formatMoney(val)}
+                  />
+                </span>
                 <span className="text-xs px-2 py-0.5 rounded-md bg-white/[0.05] font-bold">
-                  {isProfit ? '+' : ''}%{currentAsset.profitLossPercent.toFixed(2)}
+                  {isProfit ? '+' : ''}
+                  <AnimatedNumber
+                    value={currentAsset.profitLossPercent}
+                    cacheKey={`asset_pnl_pct_${currentAsset.key}`}
+                    decimals={2}
+                    duration={750}
+                    formatFn={(val) => `${val >= 0 ? '+' : ''}%${val.toFixed(2)}`}
+                  />
                 </span>
               </div>
               <span className="text-[11px] text-zinc-500 mt-1 tabular-nums">
@@ -295,7 +325,12 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
                 Ort. Alış Maliyeti
               </span>
               <span className="text-sm sm:text-base font-extrabold text-zinc-200 tabular-nums">
-                {currencySymbol}{currentAsset.avgPurchasePrice.toLocaleString(locale, { minimumFractionDigits: 2 })}
+                <AnimatedNumber
+                  value={currentAsset.avgPurchasePrice}
+                  cacheKey={`asset_avg_${currentAsset.key}`}
+                  duration={750}
+                  formatFn={(val) => `${currencySymbol}${val.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                />
               </span>
             </div>
 
@@ -318,7 +353,12 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
                 <span>{isProfit ? '+' : ''}{currentAsset.profitLossPercent.toFixed(1)}%</span>
               </div>
               <span className={`text-[10px] font-semibold block mt-0.5 tabular-nums ${isProfit ? 'text-emerald-400/80' : 'text-rose-400/80'}`}>
-                {isProfit ? '+' : ''}{formatMoney(currentAsset.totalProfitLoss)}
+                {isProfit ? '+' : ''}
+                <AnimatedNumber
+                  value={currentAsset.totalProfitLoss}
+                  duration={750}
+                  formatFn={(val) => formatMoney(val)}
+                />
               </span>
             </div>
           </div>
