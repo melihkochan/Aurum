@@ -1,0 +1,346 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-heading: 'Outfit', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    --font-body: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Plus Jakarta Sans', 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html, body {
+    background-color: #070709;
+    background-image: 
+      radial-gradient(ellipse 900px 520px at 50% -100px, rgba(243, 180, 50, 0.25) 0%, rgba(180, 110, 20, 0.10) 45%, transparent 75%),
+      radial-gradient(circle 800px at 88% 18%, rgba(95, 60, 210, 0.08) 0%, transparent 55%),
+      radial-gradient(circle 600px at 10% 70%, rgba(220, 150, 30, 0.05) 0%, transparent 60%);
+    background-attachment: fixed;
+    color: #FFFFFF;
+    min-height: 100vh;
+    width: 100%;
+    overflow-x: hidden;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Disable default browser number input stepper arrows */
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+}
+
+#root {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Typography Helpers */
+.font-display {
+  font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif !important;
+  letter-spacing: -0.03em;
+}
+
+.tabular-nums, .finance-num {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* Custom Sleek Scrollbar */
+html, body {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(229, 184, 92, 0.25) #070709;
+}
+
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+::-webkit-scrollbar-track {
+  background: #070709;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 9999px;
+  border: 1.5px solid #070709;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(229, 184, 92, 0.55);
+}
+
+.aurum-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(229, 184, 92, 0.25) transparent;
+}
+.aurum-scrollbar::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+.aurum-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.aurum-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 9999px;
+}
+.aurum-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(229, 184, 92, 0.5);
+}
+
+/* Luxury Modern Fintech Scrollbar */
+.aurum-modern-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(229, 184, 92, 0.4) rgba(255, 255, 255, 0.03);
+  overflow-y: auto;
+  overflow-x: hidden !important;
+}
+.aurum-modern-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.aurum-modern-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 9999px;
+  margin: 6px 0;
+}
+.aurum-modern-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(229, 184, 92, 0.45) 0%, rgba(229, 184, 92, 0.25) 100%);
+  border-radius: 9999px;
+  border: 1px solid rgba(229, 184, 92, 0.3);
+  transition: all 0.2s ease;
+}
+.aurum-modern-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #F5D07A 0%, #E5B85C 100%);
+  box-shadow: 0 0 10px rgba(229, 184, 92, 0.5);
+}
+
+/* ==========================================================================
+   HEROUI & LUXURY CARD THEME OVERRIDES
+   ========================================================================== */
+
+/* HeroUI Card & Glass Panel */
+.glass-panel, [data-slot="card"] {
+  background: rgba(16, 16, 22, 0.65) !important;
+  backdrop-filter: blur(28px) !important;
+  -webkit-backdrop-filter: blur(28px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  border-radius: 1.75rem !important;
+  box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.02) !important;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.glass-panel:hover, [data-slot="card"]:hover {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 25px 60px -10px rgba(0, 0, 0, 0.75), 0 0 25px rgba(229, 184, 92, 0.08) !important;
+}
+
+/* Reference 1: Stacked Gold Card Styles */
+.gold-card-sheen {
+  background: linear-gradient(135deg, #FAD77B 0%, #E5B85C 35%, #B88532 80%, #8A5B18 100%) !important;
+  color: #0A0A0C !important;
+  border-radius: 2rem !important;
+  box-shadow: 0 22px 50px -10px rgba(229, 184, 92, 0.40), inset 0 1px 2px rgba(255, 255, 255, 0.5) !important;
+}
+
+.amber-card-sheen {
+  background: linear-gradient(135deg, #F5A623 0%, #D67A10 50%, #9B4F06 100%) !important;
+  color: #FFFFFF !important;
+  border-radius: 2rem !important;
+  box-shadow: 0 22px 50px -10px rgba(245, 166, 35, 0.35), inset 0 1px 2px rgba(255, 255, 255, 0.3) !important;
+}
+
+.obsidian-card-sheen {
+  background: linear-gradient(145deg, #181822 0%, #111116 55%, #0A0A0D 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.09) !important;
+  color: #FFFFFF !important;
+  border-radius: 2rem !important;
+  box-shadow: 0 22px 50px -10px rgba(0, 0, 0, 0.8), inset 0 1px 1px rgba(255, 255, 255, 0.08) !important;
+}
+
+/* HeroUI Button Overrides */
+.heroui-gold-btn {
+  background: linear-gradient(135deg, #F5D07A 0%, #E5B85C 50%, #C99539 100%) !important;
+  color: #0A0A0C !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.02em !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 0 8px 24px -4px rgba(229, 184, 92, 0.45) !important;
+  transition: all 0.2s ease !important;
+}
+
+.heroui-gold-btn:hover {
+  filter: brightness(1.08) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 12px 30px -4px rgba(229, 184, 92, 0.6) !important;
+}
+
+.heroui-gold-btn:active {
+  transform: scale(0.98) !important;
+}
+
+/* Animations */
+@keyframes goldPulse {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.05); }
+}
+
+.animate-gold-pulse {
+  animation: goldPulse 4s ease-in-out infinite;
+}
+
+/* Custom Minimalist Dark Scrollbar */
+.aurum-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.aurum-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 9999px;
+}
+
+.aurum-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 9999px;
+}
+
+.aurum-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(229, 184, 92, 0.4);
+}
+
+/* Firefox scrollbar */
+.aurum-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.15) rgba(255, 255, 255, 0.02);
+}
+
+/* Pulsing rings animation - subtle breathing */
+@keyframes havnRingPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.55; transform: scale(1.03); }
+}
+.havn-ring {
+  animation: havnRingPulse 5s ease-in-out infinite;
+}
+
+/* Background bloom pulse - minimal ambient */
+@keyframes havnBloom {
+  0%, 100% { opacity: 0.4; transform: translate(-50%, -50%) scale(1); }
+  50%       { opacity: 0.65; transform: translate(-50%, -50%) scale(1.05); }
+}
+.havn-bloom {
+  animation: havnBloom 6s ease-in-out infinite;
+}
+
+/* Icon glow breathe - controlled and refined */
+@keyframes havnIconGlow {
+  0%, 100% {
+    box-shadow:
+      0 0 0 1px rgba(229,184,92,0.25),
+      0 0 20px rgba(229,184,92,0.2),
+      0 0 40px rgba(184,133,50,0.1),
+      inset 0 1px 0 rgba(255,255,255,0.25);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px rgba(229,184,92,0.4),
+      0 0 30px rgba(245,208,122,0.3),
+      0 0 55px rgba(229,184,92,0.18),
+      inset 0 1px 0 rgba(255,255,255,0.35);
+  }
+}
+.havn-icon-glow {
+  animation: havnIconGlow 4s ease-in-out infinite;
+}
+
+/* CSS-only star field */
+@keyframes havnStarTwinkle {
+  0%, 100% { opacity: 0.08; }
+  50%       { opacity: 0.55; }
+}
+
+.havn-stars::before {
+  content: '';
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow:
+    80px 120px rgba(255,255,255,0.25),
+    210px 65px rgba(255,255,255,0.18),
+    350px 200px rgba(255,255,255,0.30),
+    480px 95px rgba(255,255,255,0.15),
+    560px 310px rgba(255,255,255,0.22),
+    650px 145px rgba(255,255,255,0.28),
+    730px 380px rgba(255,255,255,0.12),
+    40px 290px rgba(255,255,255,0.20),
+    130px 440px rgba(255,255,255,0.15),
+    260px 375px rgba(255,255,255,0.28),
+    390px 480px rgba(255,255,255,0.22),
+    520px 540px rgba(255,255,255,0.18),
+    680px 490px rgba(255,255,255,0.25),
+    90px 600px rgba(255,255,255,0.12),
+    200px 660px rgba(255,255,255,0.20),
+    340px 720px rgba(255,255,255,0.15),
+    450px 680px rgba(255,255,255,0.28),
+    600px 760px rgba(255,255,255,0.18),
+    60px 800px rgba(255,255,255,0.22),
+    180px 850px rgba(255,255,255,0.15),
+    320px 920px rgba(255,255,255,0.20),
+    500px 870px rgba(255,255,255,0.12),
+    660px 940px rgba(255,255,255,0.25),
+    110px 190px rgba(255,255,255,0.18),
+    310px 50px rgba(255,255,255,0.12),
+    700px 240px rgba(255,255,255,0.20),
+    420px 160px rgba(255,255,255,0.15),
+    570px 410px rgba(255,255,255,0.22),
+    150px 530px rgba(255,255,255,0.18),
+    450px 300px rgba(255,255,255,0.12);
+  animation: havnStarTwinkle 6s ease-in-out infinite;
+}
+
+.havn-stars::after {
+  content: '';
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow:
+    170px 80px rgba(255,255,255,0.20),
+    290px 140px rgba(255,255,255,0.28),
+    440px 260px rgba(255,255,255,0.15),
+    595px 60px rgba(255,255,255,0.22),
+    720px 310px rgba(255,255,255,0.18),
+    30px 370px rgba(255,255,255,0.25),
+    240px 500px rgba(255,255,255,0.12),
+    480px 620px rgba(255,255,255,0.20),
+    630px 580px rgba(255,255,255,0.15),
+    100px 700px rgba(255,255,255,0.22),
+    370px 790px rgba(255,255,255,0.18),
+    550px 700px rgba(255,255,255,0.28),
+    700px 820px rgba(255,255,255,0.12),
+    220px 880px rgba(255,255,255,0.20),
+    415px 950px rgba(255,255,255,0.15),
+    680px 170px rgba(255,255,255,0.22),
+    340px 340px rgba(255,255,255,0.18),
+    75px 470px rgba(255,255,255,0.12),
+    510px 440px rgba(255,255,255,0.20);
+  animation: havnStarTwinkle 8s ease-in-out infinite;
+  animation-delay: 3s;
+}
+
