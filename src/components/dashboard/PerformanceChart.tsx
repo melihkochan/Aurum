@@ -141,8 +141,8 @@ export const PerformanceChart: React.FC = () => {
                 domain={['auto', 'auto']}
                 axisLine={false}
                 tickLine={false}
-                tick={{ fill: '#71717A', fontSize: 11, fontWeight: 500 }}
-                tickFormatter={(val) => `${currencySymbol}${(val / 1000).toFixed(0)}k`}
+                tick={{ fill: isBalanceHidden ? '#52525B' : '#71717A', fontSize: 11, fontWeight: 500 }}
+                tickFormatter={(val) => isBalanceHidden ? '••••' : `${currencySymbol}${(val / 1000).toFixed(0)}k`}
                 dx={-5}
               />
               <Tooltip content={<CustomTooltip />} />

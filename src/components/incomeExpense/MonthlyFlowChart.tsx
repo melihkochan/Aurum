@@ -13,7 +13,7 @@ import { usePortfolio } from '../../context/PortfolioContext';
 import { calculateCashflowHistory } from '../../services/portfolio/financeEngine';
 
 export const MonthlyFlowChart: React.FC = () => {
-  const { transactions, formatMoney } = usePortfolio();
+  const { transactions, formatMoney, isBalanceHidden, currencySymbol } = usePortfolio();
   const [period, setPeriod] = useState<6 | 12>(6);
 
   const historyData = React.useMemo(() => {
@@ -102,11 +102,11 @@ export const MonthlyFlowChart: React.FC = () => {
                 axisLine={false} 
               />
               <YAxis 
-                stroke="#71717A" 
+                stroke={isBalanceHidden ? '#52525B' : '#71717A'} 
                 fontSize={10} 
                 tickLine={false} 
                 axisLine={false}
-                tickFormatter={(val) => `₺${(val / 1000).toFixed(0)}k`}
+                tickFormatter={(val) => isBalanceHidden ? '••••' : `${currencySymbol}${(val / 1000).toFixed(0)}k`}
               />
               <Tooltip content={<CustomBarTooltip />} />
               <Legend 

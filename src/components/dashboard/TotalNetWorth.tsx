@@ -127,7 +127,10 @@ export const TotalNetWorth: React.FC<TotalNetWorthProps> = ({ onOpenAddModal }) 
             >
               {isPositive ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
               <span>
-                {isPositive ? '+' : '-'}{currencySymbol}{Math.abs(currentPeriodPerformance.amount).toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ({isPositive ? '+' : ''}{currentPeriodPerformance.percent.toFixed(2)}%)
+                {isBalanceHidden
+                  ? `${currencySymbol}•••• (${isPositive ? '+' : ''}${currentPeriodPerformance.percent.toFixed(2)}%)`
+                  : `${isPositive ? '+' : '-'}${currencySymbol}${Math.abs(currentPeriodPerformance.amount).toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (${isPositive ? '+' : ''}{currentPeriodPerformance.percent.toFixed(2)}%)`
+                }
               </span>
             </div>
             <span className="text-xs text-zinc-400 font-medium">
