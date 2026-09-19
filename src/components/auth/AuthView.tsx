@@ -391,9 +391,12 @@ export const AuthView: React.FC<AuthViewProps> = ({
                     {lastUserName ? 'Tekrar Hoş Geldiniz' : 'Hoş Geldiniz'}
                   </h2>
                   {lastUserName && (
-                    <span className="text-[11px] px-2.5 py-1 rounded-full bg-[#E5B85C]/10 border border-[#E5B85C]/25 text-[#F5C042] font-mono font-bold tracking-tight shrink-0 shadow-sm">
-                      {lastUsername ? `@${lastUsername.replace(/^@/, '')}` : `@${lastUserName.toLowerCase().replace(/\s+/g, '_')}`}
-                    </span>
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#E5B85C]/10 border border-[#E5B85C]/20 text-[11px] shrink-0 shadow-sm">
+                      <span className="text-zinc-400 font-medium">Son oturum:</span>
+                      <span className="text-[#F5C042] font-mono font-bold">
+                        {lastUsername ? `@${lastUsername.replace(/^@/, '')}` : `@${lastUserName.toLowerCase().replace(/\s+/g, '_')}`}
+                      </span>
+                    </div>
                   )}
                 </div>
                 <p className="text-xs text-zinc-400">
