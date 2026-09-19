@@ -9,6 +9,7 @@ import {
   AtSign,
   ArrowRight,
   AlertCircle,
+  CheckCircle2,
   Loader2,
 } from 'lucide-react';
 import { AvatarPicker } from './AvatarPicker';
@@ -84,16 +85,6 @@ export const AuthView: React.FC<AuthViewProps> = ({
   const hasNumber = /[0-9]/.test(registerPassword);
   const passwordsMatch = registerPassword.length > 0 && registerPassword === confirmPassword;
 
-  const isRegisterValid =
-    fullName.trim().length > 0 &&
-    username.trim().length >= 3 &&
-    registerEmail.trim().includes('@') &&
-    hasMinLength &&
-    hasUpperCase &&
-    hasLowerCase &&
-    hasNumber &&
-    passwordsMatch;
-
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
@@ -112,17 +103,57 @@ export const AuthView: React.FC<AuthViewProps> = ({
     e.preventDefault();
     setErrorMsg(null);
 
-    if (!isRegisterValid) {
-      setErrorMsg('Lütfen tüm şifre kriterlerini karşılayınız ve alanları doldurunuz.');
+    if (!fullName.trim()) {
+      setErrorMsg('Lütfen adınızı ve soyadınızı giriniz.');
+      return;
+    }
+
+    if (username.trim().length < 3) {
+      setErrorMsg('Kullanıcı adı en az 3 karakter uzunluğunda olmalıdır.');
+      return;
+    }
+
+    if (!registerEmail.trim() || !registerEmail.includes('@')) {
+      setErrorMsg('Lütfen geçerli bir e-posta adresi giriniz.');
+      return;
+    }
+
+    if (!hasMinLength) {
+      setErrorMsg('Şifreniz en az 8 karakter uzunluğunda olmalıdır.');
+      return;
+    }
+
+    if (!hasUpperCase) {
+      setErrorMsg('Şifreniz en az bir büyük harf (A-Z) içermelidir.');
+      return;
+    }
+
+    if (!hasLowerCase) {
+      setErrorMsg('Şifreniz en az bir küçük harf (a-z) içermelidir.');
+      return;
+    }
+
+    if (!hasNumber) {
+      setErrorMsg('Şifreniz en az bir rakam (0-9) içermelidir.');
+      return;
+    }
+
+    if (!confirmPassword) {
+      setErrorMsg('Lütfen şifrenizi doğrulamak için "Şifre Tekrar" alanını doldurunuz.');
+      return;
+    }
+
+    if (registerPassword !== confirmPassword) {
+      setErrorMsg('Girdiğiniz şifreler birbiriyle eşleşmiyor. Lütfen her iki kutucuğa da aynı şifreyi yazdığınızdan emin olun.');
       return;
     }
 
     setIsLoading(true);
     try {
       await register({
-        fullName,
-        username,
-        email: registerEmail,
+        fullName: fullName.trim(),
+        username: username.trim().replace(/^@/, ''),
+        email: registerEmail.trim(),
         password: registerPassword,
         avatar,
         avatarType,
@@ -630,9 +661,22 @@ export const AuthView: React.FC<AuthViewProps> = ({
 
                 {/* Confirm Password */}
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-zinc-300 block">
-                    Şifre Tekrar
-                  </label>
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-zinc-300 block">
+                      Şifre Tekrar
+                    </label>
+                    {confirmPassword && (
+                      confirmPassword === registerPassword ? (
+                        <span className="text-[10px] px-2 py-0.5 rounded-md bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-bold flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3" /> Eşleşti
+                        </span>
+                      ) : (
+                        <span className="text-[10px] px-2 py-0.5 rounded-md bg-rose-500/15 border border-rose-500/30 text-rose-400 font-bold flex items-center gap-1 animate-pulse">
+                          ✕ Eşleşmiyor
+                        </span>
+                      )
+                    )}
+                  </div>
                   <div className="relative">
                     <Lock className="w-4 h-4 text-zinc-500 absolute left-4 top-1/2 -translate-y-1/2" />
                     <input
@@ -641,7 +685,13 @@ export const AuthView: React.FC<AuthViewProps> = ({
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="Şifrenizi tekrar giriniz"
                       required
-                      className="w-full pl-11 pr-11 py-3 rounded-2xl bg-white/[0.03] border border-white/[0.08] focus:border-[#E5B85C]/60 text-sm text-white placeholder:text-zinc-600 focus:outline-none transition-all font-mono"
+                      className={`w-full pl-11 pr-11 py-3 rounded-2xl bg-white/[0.03] border text-sm text-white placeholder:text-zinc-600 focus:outline-none transition-all font-mono ${
+                        confirmPassword
+                          ? confirmPassword === registerPassword
+                            ? 'border-emerald-500/50 focus:border-emerald-500 ring-1 ring-emerald-500/20'
+                            : 'border-rose-500/60 focus:border-rose-500 ring-1 ring-rose-500/20'
+                          : 'border-white/[0.08] focus:border-[#E5B85C]/60'
+                      }`}
                     />
                     <button
                       type="button"
@@ -651,9 +701,15 @@ export const AuthView: React.FC<AuthViewProps> = ({
                       {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
+                  {confirmPassword && confirmPassword !== registerPassword && (
+                    <p className="text-[11px] text-rose-400 flex items-center gap-1.5 mt-1 font-medium animate-in fade-in">
+                      <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                      <span>Şifreler birbiriyle eşleşmiyor. Lütfen her iki alana da aynı şifreyi yazın.</span>
+                    </p>
+                  )}
                 </div>
 
-                {/* Password Validation Checklist (4 Criteria) */}
+                {/* Password Validation Checklist (5 Criteria) */}
                 <div className="p-3.5 rounded-2xl bg-white/[0.02] border border-white/[0.05] space-y-2">
                   <span className="text-[11px] font-bold text-zinc-400 block uppercase tracking-wider">
                     GÜVENLİ ŞİFRE KRİTERLERİ:
@@ -684,12 +740,21 @@ export const AuthView: React.FC<AuthViewProps> = ({
                       <span>Rakam</span>
                     </div>
                   </div>
+
+                  {confirmPassword && (
+                    <div className={`pt-2 border-t border-white/[0.05] flex items-center gap-1.5 text-xs ${passwordsMatch ? 'text-emerald-400 font-semibold' : 'text-rose-400 font-semibold'}`}>
+                      <div className={`w-3.5 h-3.5 rounded-full flex items-center justify-center text-[10px] ${passwordsMatch ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'}`}>
+                        {passwordsMatch ? '✓' : '✕'}
+                      </div>
+                      <span>{passwordsMatch ? 'Şifreler başarıyla eşleşti' : 'Şifreler birbiriyle eşleşmiyor'}</span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Register Submit Button */}
                 <button
                   type="submit"
-                  disabled={isLoading || !isRegisterValid}
+                  disabled={isLoading}
                   className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-[#F5D07A] via-[#E5B85C] to-[#D6A84F] hover:brightness-110 active:scale-[0.98] text-[#0A0A0C] font-black text-sm transition-all shadow-[0_4px_20px_rgba(229,184,92,0.3)] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed mt-2"
                 >
                   {isLoading ? (
