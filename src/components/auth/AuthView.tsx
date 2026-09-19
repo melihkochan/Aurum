@@ -62,9 +62,16 @@ export const AuthView: React.FC<AuthViewProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [oauthNotice, setOauthNotice] = useState<string | null>(null);
-  const [lastUserName, setLastUserName] = useState<string>(() => {
+  const [lastUserName] = useState<string>(() => {
     try {
       return localStorage.getItem('aurum_last_user_name') || '';
+    } catch {
+      return '';
+    }
+  });
+  const [lastUsername] = useState<string>(() => {
+    try {
+      return localStorage.getItem('aurum_last_username') || '';
     } catch {
       return '';
     }
@@ -394,23 +401,13 @@ export const AuthView: React.FC<AuthViewProps> = ({
                   )}
                 </p>
                 {lastUserName && (
-                  <div className="pt-1 flex items-center justify-between">
+                  <div className="pt-1 flex items-center gap-2">
                     <span className="text-[11px] text-zinc-500">
-                      Son oturum:{' '}
-                      <span className="text-zinc-300 font-medium">{lastUserName}</span>
+                      Son oturum:
                     </span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        try {
-                          localStorage.removeItem('aurum_last_user_name');
-                        } catch {}
-                        setLastUserName('');
-                      }}
-                      className="text-[11px] text-[#E5B85C]/80 hover:text-[#E5B85C] hover:underline cursor-pointer"
-                    >
-                      Farklı hesapla gir
-                    </button>
+                    <span className="text-[11px] px-2 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.08] text-[#E5B85C] font-mono font-bold">
+                      {lastUsername ? `@${lastUsername.replace(/^@/, '')}` : `@${lastUserName.toLowerCase().replace(/\s+/g, '_')}`}
+                    </span>
                   </div>
                 )}
               </div>

@@ -89,6 +89,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } else if (profile?.username) {
           localStorage.setItem('aurum_last_user_name', profile.username);
         }
+        if (profile?.username) {
+          localStorage.setItem('aurum_last_username', profile.username);
+        }
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
         setSession(null);
@@ -115,6 +118,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } else if (result.user?.username) {
         localStorage.setItem('aurum_last_user_name', result.user.username);
       }
+      if (result.user?.username) {
+        localStorage.setItem('aurum_last_username', result.user.username);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -129,6 +135,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (result.user?.fullName) {
         const firstName = result.user.fullName.trim().split(' ')[0];
         if (firstName) localStorage.setItem('aurum_last_user_name', firstName);
+      }
+      if (result.user?.username) {
+        localStorage.setItem('aurum_last_username', result.user.username);
       }
     } finally {
       setIsLoading(false);
@@ -145,6 +154,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const firstName = result.user.fullName.trim().split(' ')[0];
         if (firstName) localStorage.setItem('aurum_last_user_name', firstName);
       }
+      if (result.user?.username) {
+        localStorage.setItem('aurum_last_username', result.user.username);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -159,6 +171,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (updated?.fullName) {
         const firstName = updated.fullName.trim().split(' ')[0];
         if (firstName) localStorage.setItem('aurum_last_user_name', firstName);
+      }
+      if (updated?.username) {
+        localStorage.setItem('aurum_last_username', updated.username);
       }
     } finally {
       setIsLoading(false);

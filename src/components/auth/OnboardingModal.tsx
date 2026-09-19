@@ -57,6 +57,9 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onComp
 
       try {
         localStorage.setItem('aurum_last_user_name', fullName.trim().split(' ')[0]);
+        if (cleanUsername) {
+          localStorage.setItem('aurum_last_username', cleanUsername);
+        }
       } catch {}
 
       onComplete();
