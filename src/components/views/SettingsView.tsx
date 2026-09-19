@@ -18,7 +18,6 @@ import {
   CheckCircle2,
   AlertCircle,
   ShieldCheck,
-  Sparkles,
   Server,
   ExternalLink,
   Loader2,
@@ -875,10 +874,12 @@ export const SettingsView: React.FC = () => {
                 <div className="absolute top-0 right-0 w-64 h-64 bg-[#E5B85C]/5 rounded-full blur-3xl pointer-events-none" />
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative z-10">
                   <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#F3C969] via-[#E5B85C] to-[#B38728] p-0.5 shadow-[0_0_25px_rgba(229,184,92,0.3)] shrink-0">
-                      <div className="w-full h-full bg-[#0A0A0C] rounded-[14px] flex items-center justify-center">
-                        <Sparkles className="w-7 h-7 text-[#E5B85C]" />
-                      </div>
+                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#F3C969] via-[#E5B85C] to-[#B38728] p-0.5 shadow-[0_0_25px_rgba(229,184,92,0.35)] shrink-0 overflow-hidden">
+                      <img
+                        src="/gorseller/logo.png"
+                        alt="AURUM Finance"
+                        className="w-full h-full rounded-[14px] object-cover"
+                      />
                     </div>
                     <div>
                       <div className="flex items-center gap-2">

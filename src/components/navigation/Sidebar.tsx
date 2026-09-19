@@ -45,10 +45,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onSelectTab }) => 
         {/* Brand Icon */}
         <div
           onClick={() => onSelectTab('dashboard')}
-          className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#F5D07A] via-[#E5B85C] to-[#A06C18] flex items-center justify-center text-[#0A0A0C] font-black text-xl shadow-[0_6px_22px_rgba(229,184,92,0.4)] cursor-pointer hover:scale-105 active:scale-95 transition-all"
+          className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#F5D07A] via-[#E5B85C] to-[#A06C18] p-0.5 shadow-[0_6px_22px_rgba(229,184,92,0.4)] cursor-pointer hover:scale-105 active:scale-95 transition-all overflow-hidden"
           title="Aurum Vault"
         >
-          <span className="font-display font-black text-2xl tracking-tight">A</span>
+          <img src="/gorseller/logo.png" alt="Aurum Vault" className="w-full h-full object-cover rounded-[14px]" />
         </div>
 
         {/* Navigation Items */}

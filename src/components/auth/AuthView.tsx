@@ -262,23 +262,11 @@ export const AuthView: React.FC<AuthViewProps> = ({
             />
 
             {/* The Central AURUM Icon */}
-            <div
-              className="relative w-24 h-24 rounded-3xl flex items-center justify-center havn-icon-glow cursor-pointer transition-transform hover:scale-105 z-10"
-              style={{
-                background:
-                  'linear-gradient(145deg, rgba(245,208,122,0.98) 0%, rgba(184,133,50,0.96) 100%)',
-              }}
-            >
-              <span className="font-display font-black text-4xl text-[#0A0A0C] tracking-tight">
-                A
-              </span>
-              {/* Inner specular highlight */}
-              <div
-                className="absolute inset-0 rounded-3xl pointer-events-none"
-                style={{
-                  background:
-                    'radial-gradient(circle at 35% 30%, rgba(255,255,255,0.4) 0%, transparent 60%)',
-                }}
+            <div className="relative w-24 h-24 rounded-3xl overflow-hidden havn-icon-glow cursor-pointer transition-transform hover:scale-105 z-10 border border-[#E5B85C]/40 shadow-[0_0_35px_rgba(229,184,92,0.35)] p-0.5 bg-[#0A0A0C]">
+              <img
+                src="/gorseller/logo.png"
+                alt="AURUM Logo"
+                className="w-full h-full object-cover rounded-[22px]"
               />
             </div>
           </div>
