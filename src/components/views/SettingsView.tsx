@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   User as UserIcon,
   Shield,
@@ -11,7 +11,9 @@ import {
   LogOut,
   Download,
   Smartphone,
+  Tablet,
   Globe,
+  RefreshCw,
   KeyRound,
   Eye,
   EyeOff,
@@ -28,6 +30,7 @@ import { GoldSwitch } from '../ui/GoldSwitch';
 import { UserAvatar } from '../ui/UserAvatar';
 import { AvatarPicker } from '../auth/AvatarPicker';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
+import { DeviceService, type UserDevice } from '../../services/device/deviceService';
 import type { AvatarColor, AvatarType } from '../../services/auth/types';
 
 export type SettingsSectionId =
@@ -83,59 +86,79 @@ export const SettingsView: React.FC = () => {
   // Account editing states
   const isOAuthUser = user?.authProvider === 'google' || user?.authProvider === 'apple';
 
-  // Dynamic Real Device Detection
-  const currentDeviceInfo = useMemo(() => {
-    if (typeof window === 'undefined') {
-      return {
-        deviceName: 'Bu Cihaz (Masaüstü)',
-        browser: 'Google Chrome',
-        location: 'Türkiye',
-        isMobile: false,
-      };
-    }
+  // Real Cross-Device Management & Dynamic Detection
+  const currentDeviceId = useMemo(() => DeviceService.getDeviceId(), []);
+  const [devices, setDevices] = useState<UserDevice[]>([]);
+  const [isLoadingDevices, setIsLoadingDevices] = useState(false);
+  const [deviceActionMsg, setDeviceActionMsg] = useState<string | null>(null);
+  const [deviceToRevoke, setDeviceToRevoke] = useState<UserDevice | null>(null);
+  const [isRevokeAllOpen, setIsRevokeAllOpen] = useState(false);
 
-    const ua = navigator.userAgent;
-    let deviceName = 'Bu Cihaz (Windows PC)';
-    let isMobile = false;
-
-    if (/iphone/i.test(ua)) {
-      deviceName = 'Bu Cihaz (Apple iPhone)';
-      isMobile = true;
-    } else if (/ipad/i.test(ua)) {
-      deviceName = 'Bu Cihaz (Apple iPad)';
-      isMobile = true;
-    } else if (/android/i.test(ua)) {
-      deviceName = 'Bu Cihaz (Android Telefon)';
-      isMobile = true;
-    } else if (/macintosh|mac os x/i.test(ua)) {
-      deviceName = 'Bu Cihaz (Apple Mac)';
-    } else if (/windows/i.test(ua)) {
-      deviceName = 'Bu Cihaz (Windows PC)';
-    } else if (/linux/i.test(ua)) {
-      deviceName = 'Bu Cihaz (Linux PC)';
-    }
-
-    let browser = 'Web Tarayıcısı';
-    if (/edg/i.test(ua)) browser = 'Microsoft Edge';
-    else if (/chrome|crios/i.test(ua)) browser = 'Google Chrome';
-    else if (/firefox|fxios/i.test(ua)) browser = 'Mozilla Firefox';
-    else if (/safari/i.test(ua) && !/chrome/i.test(ua)) browser = 'Apple Safari';
-    else if (/opera|opr/i.test(ua)) browser = 'Opera';
-
-    let location = 'Türkiye';
+  const refreshDevices = async () => {
+    if (!user?.id) return;
+    setIsLoadingDevices(true);
     try {
-      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      if (tz.includes('Istanbul')) location = 'İstanbul, Türkiye';
-      else if (tz) location = tz.replace('_', ' ');
-    } catch {}
+      await DeviceService.syncCurrentDevice(user.id);
+      const list = await DeviceService.getUserDevices(user.id);
+      setDevices(list);
+    } catch (err) {
+      console.warn('Refresh devices failed:', err);
+    } finally {
+      setIsLoadingDevices(false);
+    }
+  };
 
-    return {
-      deviceName,
-      browser,
-      location,
-      isMobile,
-    };
-  }, []);
+  useEffect(() => {
+    if (user?.id) {
+      refreshDevices();
+    }
+  }, [user?.id]);
+
+  const handleRevokeSingleDevice = async () => {
+    if (!user?.id || !deviceToRevoke) return;
+    try {
+      await DeviceService.removeDevice(user.id, deviceToRevoke.id);
+      setDevices((prev) => prev.filter((d) => d.id !== deviceToRevoke.id));
+      setDeviceActionMsg(`"${deviceToRevoke.device_name}" oturumu başarıyla sonlandırıldı.`);
+      setTimeout(() => setDeviceActionMsg(null), 3500);
+    } catch (e) {
+      console.warn('Revoke device error:', e);
+    } finally {
+      setDeviceToRevoke(null);
+    }
+  };
+
+  const handleRevokeAllOther = async () => {
+    if (!user?.id) return;
+    try {
+      await DeviceService.revokeOtherDevices(user.id);
+      setDevices((prev) => prev.filter((d) => d.id === currentDeviceId));
+      setDeviceActionMsg('Diğer tüm cihazlardaki oturumlar başarıyla kapatıldı.');
+      setTimeout(() => setDeviceActionMsg(null), 3500);
+    } catch (e) {
+      console.warn('Revoke all devices error:', e);
+    } finally {
+      setIsRevokeAllOpen(false);
+    }
+  };
+
+  const formatActiveTime = (dateStr: string) => {
+    try {
+      const diffMs = Date.now() - new Date(dateStr).getTime();
+      const diffSec = Math.max(0, Math.floor(diffMs / 1000));
+      if (diffSec < 60) return 'Şimdi aktif';
+      const diffMin = Math.floor(diffSec / 60);
+      if (diffMin < 60) return `${diffMin} dakika önce`;
+      const diffHour = Math.floor(diffMin / 60);
+      if (diffHour < 24) return `${diffHour} saat önce`;
+      const diffDay = Math.floor(diffHour / 24);
+      if (diffDay === 1) return 'Dün';
+      if (diffDay < 7) return `${diffDay} gün önce`;
+      return new Date(dateStr).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
+    } catch {
+      return 'Bilinmiyor';
+    }
+  };
 
   const [nameInput, setNameInput] = useState(user?.fullName || preferences.name || 'Melih KOÇHAN');
   const [usernameInput, setUsernameInput] = useState(user?.username || 'melih');
@@ -796,7 +819,7 @@ export const SettingsView: React.FC = () => {
                   </button>
                 </div>
 
-                {/* 2. Oturumları Yönetme (Active Sessions) */}
+                {/* 2. Oturumları Yönetme (Active Sessions & Real Multi-Device) */}
                 <div className="p-4 sm:p-5 rounded-2xl bg-white/[0.025] border border-white/[0.06] space-y-3.5">
                   <div className="flex items-center justify-between">
                     <div>
@@ -804,44 +827,144 @@ export const SettingsView: React.FC = () => {
                         Aktif Oturumlar & Cihazlar
                       </span>
                       <span className="text-xs text-zinc-400 mt-0.5 block">
-                        Hesabınıza şu anda bağlı olan gerçek doğrulanmış oturumlar
+                        Hesabınıza bağlı tüm doğrulanmış cihazlar ve oturumlar
                       </span>
                     </div>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
-                      1 Aktif Cihaz
-                    </span>
-                  </div>
-
-                  {/* Device: Current Device (100% Real Detected Data) */}
-                  <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.04] flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
-                        {currentDeviceInfo.isMobile ? <Smartphone className="w-4 h-4" /> : <Globe className="w-4 h-4" />}
-                      </div>
-                      <div>
-                        <span className="text-xs font-bold text-white flex items-center gap-2">
-                          <span>{currentDeviceInfo.deviceName}</span>
-                          <span className="text-[9px] px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-400 font-mono">
-                            Şu An Aktif
-                          </span>
-                        </span>
-                        <span className="text-[11px] text-zinc-400 block mt-0.5">
-                          {currentDeviceInfo.browser} · {currentDeviceInfo.location} · Son etkinlik: Şimdi aktif
-                        </span>
-                      </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={refreshDevices}
+                        disabled={isLoadingDevices}
+                        className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white transition-all cursor-pointer disabled:opacity-50"
+                        title="Cihazları Yenile"
+                      >
+                        <RefreshCw className={`w-3.5 h-3.5 ${isLoadingDevices ? 'animate-spin text-[#E5B85C]' : ''}`} />
+                      </button>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                        {devices.length || 1} Aktif Cihaz
+                      </span>
                     </div>
                   </div>
 
-                  {/* Security Notice: Verified Single Session */}
-                  <div className="p-3.5 rounded-xl bg-emerald-500/[0.04] border border-emerald-500/15 flex items-center justify-between gap-3">
+                  {deviceActionMsg && (
+                    <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold flex items-center gap-2 animate-in fade-in">
+                      <CheckCircle2 className="w-4 h-4 shrink-0" />
+                      <span>{deviceActionMsg}</span>
+                    </div>
+                  )}
+
+                  {/* Device List */}
+                  <div className="space-y-2.5">
+                    {devices.length === 0 ? (
+                      <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.04] flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
+                            <Globe className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <span className="text-xs font-bold text-white flex items-center gap-2">
+                              <span>Bu Cihaz</span>
+                              <span className="text-[9px] px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-400 font-mono">
+                                Şu An Aktif
+                              </span>
+                            </span>
+                            <span className="text-[11px] text-zinc-400 block mt-0.5">
+                              Tarayıcı · Şimdi aktif
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      devices.map((device) => {
+                        const isCurrent = device.id === currentDeviceId;
+                        return (
+                          <div
+                            key={device.id}
+                            className={`p-3.5 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all ${
+                              isCurrent
+                                ? 'bg-emerald-500/[0.04] border-emerald-500/25 shadow-[0_4px_20px_rgba(16,185,129,0.05)]'
+                                : 'bg-white/[0.02] border-white/[0.05] hover:border-white/10'
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div
+                                className={`w-9 h-9 rounded-lg border flex items-center justify-center shrink-0 ${
+                                  isCurrent
+                                    ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400'
+                                    : 'bg-white/5 border-white/10 text-zinc-400'
+                                }`}
+                              >
+                                {device.device_type === 'mobile' ? (
+                                  <Smartphone className="w-4 h-4" />
+                                ) : device.device_type === 'tablet' ? (
+                                  <Tablet className="w-4 h-4" />
+                                ) : (
+                                  <Globe className="w-4 h-4" />
+                                )}
+                              </div>
+                              <div>
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className="text-xs font-bold text-white">
+                                    {device.device_name}
+                                  </span>
+                                  {isCurrent ? (
+                                    <span className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 font-bold flex items-center gap-1">
+                                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                                      Bu Cihaz (Şu An Aktif)
+                                    </span>
+                                  ) : (
+                                    <span className="text-[9px] px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-zinc-400 font-medium">
+                                      Doğrulanmış Oturum
+                                    </span>
+                                  )}
+                                </div>
+                                <span className="text-[11px] text-zinc-400 block mt-0.5">
+                                  {device.browser} · {device.location} · {isCurrent ? 'Şimdi aktif' : `Son oturum: ${formatActiveTime(device.last_active_at)}`}
+                                </span>
+                              </div>
+                            </div>
+
+                            {!isCurrent && (
+                              <button
+                                type="button"
+                                onClick={() => setDeviceToRevoke(device)}
+                                className="px-3 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 text-rose-400 text-xs font-semibold transition-all cursor-pointer self-start sm:self-auto shrink-0"
+                              >
+                                Oturumu Kapat
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+
+                  {/* Other devices bulk logout */}
+                  {devices.length > 1 && (
+                    <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-white/[0.04]">
+                      <span className="text-xs text-zinc-400">
+                        Bu cihaz dışındaki tüm aktif telefon ve bilgisayar oturumlarını sonlandırın.
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setIsRevokeAllOpen(true)}
+                        className="px-3.5 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/25 text-amber-400 text-xs font-bold transition-all cursor-pointer self-start sm:self-auto shrink-0"
+                      >
+                        Tüm Diğer Cihazlardan Çıkış Yap
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Security Cloud Info Notice */}
+                  <div className="p-3.5 rounded-xl bg-[#E5B85C]/[0.04] border border-[#E5B85C]/15 flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2.5">
-                      <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                      <ShieldCheck className="w-4 h-4 text-[#E5B85C] shrink-0" />
                       <span className="text-xs text-zinc-300">
-                        Hesabınız yalnızca bu doğrulanmış cihazda açık. Başka bir cihazda aktif oturum tespit edilmedi.
+                        Supabase Bulut Oturum Takibi Aktif. Yeni bir telefon veya bilgisayardan giriş yaptığınızda burada anında listelenir.
                       </span>
                     </div>
-                    <span className="text-[10px] font-semibold text-emerald-400 shrink-0 hidden sm:inline-block">
-                      ✓ Güvende
+                    <span className="text-[10px] font-semibold text-[#E5B85C] shrink-0 hidden sm:inline-block">
+                      ✓ Çoklu Cihaz
                     </span>
                   </div>
                 </div>
@@ -1289,6 +1412,32 @@ export const SettingsView: React.FC = () => {
           handleDeleteAccount();
         }}
         onClose={() => setIsDeleteAccountOpen(false)}
+      />
+
+      {/* Confirm Revoke Single Device Dialog */}
+      <ConfirmDialog
+        isOpen={!!deviceToRevoke}
+        title="Oturumu Kapat"
+        message={`"${deviceToRevoke?.device_name}" (${deviceToRevoke?.browser}) cihazındaki oturumu sonlandırmak istediğinize emin misiniz? Bu cihazdan tekrar giriş yapılması gerekecektir.`}
+        confirmText="Oturumu Kapat"
+        cancelText="Vazgeç"
+        confirmVariant="danger"
+        isDestructive={true}
+        onConfirm={handleRevokeSingleDevice}
+        onClose={() => setDeviceToRevoke(null)}
+      />
+
+      {/* Confirm Revoke All Other Devices Dialog */}
+      <ConfirmDialog
+        isOpen={isRevokeAllOpen}
+        title="Tüm Diğer Oturumları Kapat"
+        message="Şu an kullandığınız bu cihaz haricindeki tüm telefon ve bilgisayarlardaki aktif oturumlar kapatılacaktır. Onaylıyor musunuz?"
+        confirmText="Tümünü Kapat"
+        cancelText="Vazgeç"
+        confirmVariant="danger"
+        isDestructive={true}
+        onConfirm={handleRevokeAllOther}
+        onClose={() => setIsRevokeAllOpen(false)}
       />
 
     </div>

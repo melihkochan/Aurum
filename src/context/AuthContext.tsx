@@ -3,6 +3,7 @@ import type { User, Session, LoginCredentials, RegisterData } from '../services/
 import { AuthService } from '../services/auth/authService';
 import { supabase } from '../services/supabase/supabaseClient';
 import { SupabaseService } from '../services/supabase/supabaseService';
+import { DeviceService } from '../services/device/deviceService';
 
 interface AuthContextType {
   user: User | null;
@@ -105,6 +106,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       authListener?.subscription.unsubscribe();
     };
   }, []);
+
+  // Sync current device session to Supabase whenever user is active
+  useEffect(() => {
+    if (user?.id) {
+      DeviceService.syncCurrentDevice(user.id).catch((err) => {
+        console.warn('Device auto-sync warning:', err);
+      });
+    }
+  }, [user?.id]);
 
   const login = async (credentials: LoginCredentials) => {
     setIsLoading(true);

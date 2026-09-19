@@ -163,6 +163,19 @@ create table if not exists public.notes (
   updated_at timestamptz default now()
 );
 
+-- 10. USER DEVICES & ACTIVE SESSIONS
+create table if not exists public.user_devices (
+  id text primary key,
+  user_id uuid references auth.users(id) on delete cascade not null,
+  device_name text not null,
+  device_type text not null default 'desktop', -- 'desktop' | 'mobile' | 'tablet'
+  browser text not null default 'Modern Browser',
+  location text default 'Türkiye',
+  ip_address text,
+  last_active_at timestamptz default now(),
+  created_at timestamptz default now()
+);
+
 -- ==============================================================================
 -- ROW LEVEL SECURITY (RLS) POLICIES
 -- ==============================================================================
@@ -176,6 +189,7 @@ alter table public.transactions enable row level security;
 alter table public.recurring_transactions enable row level security;
 alter table public.goals enable row level security;
 alter table public.notes enable row level security;
+alter table public.user_devices enable row level security;
 
 -- user_profiles policies
 drop policy if exists "Users can manage their own profile" on public.user_profiles;
@@ -237,6 +251,13 @@ create policy "Users can manage their own goals"
 drop policy if exists "Users can manage their own notes" on public.notes;
 create policy "Users can manage their own notes"
   on public.notes for all
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+-- user_devices policies
+drop policy if exists "Users can manage their own devices" on public.user_devices;
+create policy "Users can manage their own devices"
+  on public.user_devices for all
   using (auth.uid() = user_id)
   with check (auth.uid() = user_id);
 
