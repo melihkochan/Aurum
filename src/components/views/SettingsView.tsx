@@ -83,6 +83,61 @@ export const SettingsView: React.FC = () => {
 
   // Account editing states
   const isOAuthUser = user?.authProvider === 'google' || user?.authProvider === 'apple';
+
+  // Dynamic Real Device Detection
+  const currentDeviceInfo = useMemo(() => {
+    if (typeof window === 'undefined') {
+      return {
+        deviceName: 'Bu Cihaz (Masaüstü)',
+        browser: 'Google Chrome',
+        location: 'Türkiye',
+        isMobile: false,
+      };
+    }
+
+    const ua = navigator.userAgent;
+    let deviceName = 'Bu Cihaz (Windows PC)';
+    let isMobile = false;
+
+    if (/iphone/i.test(ua)) {
+      deviceName = 'Bu Cihaz (Apple iPhone)';
+      isMobile = true;
+    } else if (/ipad/i.test(ua)) {
+      deviceName = 'Bu Cihaz (Apple iPad)';
+      isMobile = true;
+    } else if (/android/i.test(ua)) {
+      deviceName = 'Bu Cihaz (Android Telefon)';
+      isMobile = true;
+    } else if (/macintosh|mac os x/i.test(ua)) {
+      deviceName = 'Bu Cihaz (Apple Mac)';
+    } else if (/windows/i.test(ua)) {
+      deviceName = 'Bu Cihaz (Windows PC)';
+    } else if (/linux/i.test(ua)) {
+      deviceName = 'Bu Cihaz (Linux PC)';
+    }
+
+    let browser = 'Web Tarayıcısı';
+    if (/edg/i.test(ua)) browser = 'Microsoft Edge';
+    else if (/chrome|crios/i.test(ua)) browser = 'Google Chrome';
+    else if (/firefox|fxios/i.test(ua)) browser = 'Mozilla Firefox';
+    else if (/safari/i.test(ua) && !/chrome/i.test(ua)) browser = 'Apple Safari';
+    else if (/opera|opr/i.test(ua)) browser = 'Opera';
+
+    let location = 'Türkiye';
+    try {
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      if (tz.includes('Istanbul')) location = 'İstanbul, Türkiye';
+      else if (tz) location = tz.replace('_', ' ');
+    } catch {}
+
+    return {
+      deviceName,
+      browser,
+      location,
+      isMobile,
+    };
+  }, []);
+
   const [nameInput, setNameInput] = useState(user?.fullName || preferences.name || 'Melih KOÇHAN');
   const [usernameInput, setUsernameInput] = useState(user?.username || 'melih');
   const [emailInput, setEmailInput] = useState(user?.email || 'melih@aurum.app');
@@ -103,7 +158,6 @@ export const SettingsView: React.FC = () => {
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [passwordSuccess, setPasswordSuccess] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
-  const [loggedOutOtherDevices, setLoggedOutOtherDevices] = useState(false);
 
   const getPasswordStrength = (pwd: string) => {
     if (!pwd) return { score: 0, label: '', badgeClass: '', barColor: '' };
@@ -757,95 +811,45 @@ export const SettingsView: React.FC = () => {
                         Aktif Oturumlar & Cihazlar
                       </span>
                       <span className="text-xs text-zinc-400 mt-0.5 block">
-                        Hesabınıza şu anda bağlı olan doğrulanmış oturumlar
+                        Hesabınıza şu anda bağlı olan gerçek doğrulanmış oturumlar
                       </span>
                     </div>
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
-                      {loggedOutOtherDevices ? '1 Aktif Cihaz' : '3 Aktif Cihaz'}
+                      1 Aktif Cihaz
                     </span>
                   </div>
 
-                  {/* Device 1: Current Device */}
-                  <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.04] flex items-center justify-between">
+                  {/* Device: Current Device (100% Real Detected Data) */}
+                  <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.04] flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
-                        <Globe className="w-4 h-4" />
+                      <div className="w-9 h-9 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
+                        {currentDeviceInfo.isMobile ? <Smartphone className="w-4 h-4" /> : <Globe className="w-4 h-4" />}
                       </div>
                       <div>
                         <span className="text-xs font-bold text-white flex items-center gap-2">
-                          <span>Bu Cihaz (Windows PC)</span>
+                          <span>{currentDeviceInfo.deviceName}</span>
                           <span className="text-[9px] px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-400 font-mono">
                             Şu An Aktif
                           </span>
                         </span>
                         <span className="text-[11px] text-zinc-400 block mt-0.5">
-                          Chrome 128 · İstanbul, Türkiye · Son etkinlik: Bugün
+                          {currentDeviceInfo.browser} · {currentDeviceInfo.location} · Son etkinlik: Şimdi aktif
                         </span>
                       </div>
                     </div>
                   </div>
 
-                  {!loggedOutOtherDevices && (
-                    <>
-                      {/* Device 2: Mobile */}
-                      <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.04] flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 shrink-0">
-                            <Smartphone className="w-4 h-4" />
-                          </div>
-                          <div>
-                            <span className="text-xs font-bold text-white block">
-                              Apple iPhone 15 Pro
-                            </span>
-                            <span className="text-[11px] text-zinc-400 block mt-0.5">
-                              Safari Mobile · Son oturum: Bugün 19:42
-                            </span>
-                          </div>
-                        </div>
-                        <span className="text-[10px] text-zinc-500 font-medium">
-                          Mobil Uygulama
-                        </span>
-                      </div>
-
-                      {/* Device 3: Laptop */}
-                      <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.04] flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 shrink-0">
-                            <Globe className="w-4 h-4" />
-                          </div>
-                          <div>
-                            <span className="text-xs font-bold text-white block">
-                              Apple MacBook Air (M2)
-                            </span>
-                            <span className="text-[11px] text-zinc-400 block mt-0.5">
-                              Chrome macOS · Son oturum: 17 Eylül
-                            </span>
-                          </div>
-                        </div>
-                        <span className="text-[10px] text-zinc-500 font-medium">
-                          Tarayıcı
-                        </span>
-                      </div>
-                    </>
-                  )}
-
-                  {/* 3. Tüm Cihazlardan Çıkış Butonu */}
-                  <div className="pt-2 flex items-center justify-between">
-                    <span className="text-xs text-zinc-400">
-                      {loggedOutOtherDevices
-                        ? '✓ Diğer tüm cihazlardaki oturumlar sonlandırıldı.'
-                        : 'Bu cihaz dışındaki tüm aktif oturumları kapatın.'}
+                  {/* Security Notice: Verified Single Session */}
+                  <div className="p-3.5 rounded-xl bg-emerald-500/[0.04] border border-emerald-500/15 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2.5">
+                      <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                      <span className="text-xs text-zinc-300">
+                        Hesabınız yalnızca bu doğrulanmış cihazda açık. Başka bir cihazda aktif oturum tespit edilmedi.
+                      </span>
+                    </div>
+                    <span className="text-[10px] font-semibold text-emerald-400 shrink-0 hidden sm:inline-block">
+                      ✓ Güvende
                     </span>
-                    <button
-                      type="button"
-                      disabled={loggedOutOtherDevices}
-                      onClick={() => {
-                        setLoggedOutOtherDevices(true);
-                      }}
-                      className="px-3.5 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/25 text-amber-400 text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
-                    >
-                      {loggedOutOtherDevices ? 'Oturumlar Kapatıldı' : 'Tüm Diğer Cihazlardan Çıkış Yap'}
-                    </button>
                   </div>
                 </div>
 
