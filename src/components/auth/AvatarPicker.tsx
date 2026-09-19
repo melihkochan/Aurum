@@ -20,6 +20,7 @@ export const AvatarPicker: React.FC<AvatarPickerProps> = ({
   selectedColor = 'orange',
   onSelectAvatar,
   name = 'Melih',
+  compact = false,
 }) => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -44,6 +45,103 @@ export const AvatarPicker: React.FC<AvatarPickerProps> = ({
   const handleRemovePhoto = () => {
     onSelectAvatar('beam-2', 'beam');
   };
+
+  if (compact) {
+    return (
+      <div className="w-full flex flex-col sm:flex-row items-center gap-3.5 sm:gap-4 box-border">
+        {/* Left: Preview + Upload Button */}
+        <div className="flex flex-col items-center shrink-0">
+          <div className="relative p-0.5 rounded-full bg-gradient-to-tr from-[#E5B85C]/30 via-transparent to-[#F5D07A]/30 shadow-[0_0_16px_rgba(229,184,92,0.18)]">
+            <UserAvatar
+              avatar={selectedAvatar}
+              avatarType={avatarType}
+              avatarColor={selectedColor}
+              name={name}
+              size="xl"
+              className="w-14 h-14 sm:w-16 sm:h-16 rounded-full"
+              isCircle={true}
+            />
+          </div>
+
+          <div className="flex items-center gap-1.5 mt-2">
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.1] hover:border-[#E5B85C]/40 text-[11px] font-semibold text-zinc-200 hover:text-white transition-all flex items-center gap-1 cursor-pointer shadow-sm active:scale-95"
+            >
+              <Camera className="w-3 h-3 text-[#E5B85C]" />
+              <span>{avatarType === 'custom' ? 'Değiştir' : 'Fotoğraf'}</span>
+            </button>
+
+            {avatarType === 'custom' && (
+              <button
+                type="button"
+                onClick={handleRemovePhoto}
+                title="Fotoğrafı Kaldır"
+                className="p-1 rounded-lg bg-white/[0.02] hover:bg-rose-500/10 border border-white/[0.06] hover:border-rose-500/25 text-zinc-400 hover:text-rose-400 transition-all cursor-pointer active:scale-95"
+              >
+                <Trash2 className="w-3 h-3" />
+              </button>
+            )}
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleFileUpload}
+            />
+          </div>
+        </div>
+
+        {/* Vertical divider on desktop */}
+        <div className="hidden sm:block w-px h-16 bg-white/[0.08] shrink-0" />
+
+        {/* Right: Hazır Avatarlar */}
+        <div className="flex-1 w-full space-y-1.5 min-w-0">
+          <div className="flex items-center justify-between px-0.5">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+              Hazır Avatarlar
+            </span>
+            <span className="text-[10px] text-zinc-500">
+              {BEAM_AVATARS.length} seçenek
+            </span>
+          </div>
+
+          <div className="grid grid-cols-6 gap-1.5 justify-items-center w-full">
+            {BEAM_AVATARS.map((b, idx) => {
+              const isSelected =
+                avatarType !== 'custom' &&
+                (selectedAvatar === b.id || (!selectedAvatar && b.id === 'beam-2'));
+
+              return (
+                <button
+                  key={b.id}
+                  type="button"
+                  onClick={() => onSelectAvatar(b.id, 'beam')}
+                  title={b.name}
+                  className={`h-8 w-8 sm:h-8 sm:w-8 rounded-lg relative flex items-center justify-center cursor-pointer transition-all border overflow-hidden ${
+                    isSelected
+                      ? 'border-[#E5B85C] ring-2 ring-[#E5B85C]/80 ring-offset-1 ring-offset-[#0A0A0C] opacity-100 scale-105 shadow-[0_0_8px_rgba(229,184,92,0.3)]'
+                      : 'border-white/[0.08] bg-white/[0.02] opacity-65 hover:opacity-100 hover:scale-105'
+                  }`}
+                >
+                  <div className="scale-[0.95] transform flex items-center justify-center w-full h-full">
+                    {b.render(`picker-compact-${idx}-${b.id}`)}
+                  </div>
+                  {isSelected && (
+                    <div className="absolute -right-0.5 -bottom-0.5 flex h-3 w-3 items-center justify-center rounded-full bg-[#E5B85C] text-[#0A0A0C]">
+                      <Check className="h-2 w-2 stroke-[3]" />
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full flex flex-col items-center space-y-4">
