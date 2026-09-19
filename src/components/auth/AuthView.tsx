@@ -10,7 +10,6 @@ import {
   ArrowRight,
   AlertCircle,
   Loader2,
-  Zap,
 } from 'lucide-react';
 import { AvatarPicker } from './AvatarPicker';
 import type { AvatarColor, AvatarType } from '../../services/auth/types';
@@ -34,7 +33,7 @@ export const AuthView: React.FC<AuthViewProps> = ({
   initialTab = 'login',
   onForgotPassword,
 }) => {
-  const { login, loginAsDemo, register } = useAuth();
+  const { login, register, loginWithGoogle, loginWithApple } = useAuth();
 
   const [activeTab, setActiveTab] = useState<'login' | 'register'>(initialTab);
 
@@ -122,27 +121,22 @@ export const AuthView: React.FC<AuthViewProps> = ({
     }
   };
 
-  const handleDemoLogin = async () => {
-    setIdentifier('melih');
-    setPassword('Password123!');
-    setErrorMsg(null);
-    setIsLoading(true);
+
+  const handleOAuthClick = async (provider: 'Google' | 'Apple') => {
     try {
-      await loginAsDemo();
-    } catch {
-      try {
-        await login({ identifier: 'melih', password: 'Password123!' });
-      } catch (innerErr: any) {
-        setErrorMsg(innerErr.message || 'Demo girişi başarısız.');
+      setIsLoading(true);
+      setErrorMsg(null);
+      setOauthNotice(`${provider} ile güvenli oturum yönlendiriliyor...`);
+      if (provider === 'Google') {
+        await loginWithGoogle();
+      } else {
+        await loginWithApple();
       }
-    } finally {
+    } catch (err: any) {
+      setOauthNotice(null);
+      setErrorMsg(err.message || `${provider} ile giriş başlatılamadı.`);
       setIsLoading(false);
     }
-  };
-
-  const handleOAuthClick = (provider: 'Google' | 'Apple') => {
-    setOauthNotice(`${provider} ile giriş, Supabase Auth entegrasyonunda aktif olacak.`);
-    setTimeout(() => setOauthNotice(null), 4500);
   };
 
   return (
@@ -386,21 +380,6 @@ export const AuthView: React.FC<AuthViewProps> = ({
                 </p>
               </div>
 
-              {/* Quick Demo Autofill Button */}
-              <button
-                type="button"
-                onClick={handleDemoLogin}
-                disabled={isLoading}
-                className="w-full py-2.5 px-3.5 rounded-2xl bg-[#E5B85C]/[0.08] hover:bg-[#E5B85C]/[0.15] border border-[#E5B85C]/30 flex items-center justify-between text-xs font-bold text-[#F5C042] transition-all cursor-pointer active:scale-[0.99]"
-              >
-                <div className="flex items-center gap-2">
-                  <Zap className="w-3.5 h-3.5 fill-[#F5C042]" />
-                  <span>Hızlı Demo Girişi (Melih)</span>
-                </div>
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#E5B85C]/20 border border-[#E5B85C]/30 text-white font-mono">
-                  Tek Tıkla Giriş
-                </span>
-              </button>
 
               <form onSubmit={handleLoginSubmit} className="space-y-4">
                 {/* Email or Username */}

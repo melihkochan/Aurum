@@ -1,16 +1,20 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { User, Session, LoginCredentials, RegisterData } from '../services/auth/types';
 import { AuthService } from '../services/auth/authService';
+import { supabase } from '../services/supabase/supabaseClient';
+import { SupabaseService } from '../services/supabase/supabaseService';
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isOnboardingOpen: boolean;
+  setIsOnboardingOpen: (open: boolean) => void;
   login: (credentials: LoginCredentials) => Promise<void>;
   loginAsDemo: () => Promise<void>;
   register: (data: RegisterData) => Promise<void>;
-  updateProfile: (updates: Partial<User>) => Promise<void>;
+  updateProfile: (updates: Partial<User & { onboardingCompleted?: boolean }>) => Promise<void>;
   changePassword: (oldPassword: string, newPassword: string) => Promise<void>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
@@ -24,15 +28,64 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isOnboardingOpen, setIsOnboardingOpen] = useState<boolean>(false);
 
   useEffect(() => {
-    // Check initial session on app mount
+    // 1. Check initial session from local cache
     const initialSession = AuthService.getSession();
     if (initialSession) {
       setSession(initialSession);
       setUser(initialSession.user);
     }
+
+    // 2. Listen to Supabase Auth state changes (OAuth callbacks for Google & Apple)
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, sbSession) => {
+      if (sbSession?.user) {
+        let profile = await SupabaseService.getProfile(sbSession.user.id);
+        if (!profile) {
+          const rawName =
+            sbSession.user.user_metadata?.full_name ||
+            sbSession.user.user_metadata?.name ||
+            sbSession.user.email?.split('@')[0] ||
+            'Kullanıcı';
+
+          profile = {
+            id: sbSession.user.id,
+            email: sbSession.user.email || '',
+            fullName: rawName,
+            name: rawName.split(' ')[0],
+            username: sbSession.user.user_metadata?.username || sbSession.user.email?.split('@')[0] || 'user',
+            avatar: sbSession.user.user_metadata?.avatar_url || sbSession.user.user_metadata?.picture || 'beam-2',
+            avatarType: sbSession.user.user_metadata?.avatar_url ? 'custom' : 'beam',
+            avatarColor: 'orange',
+            authProvider: (sbSession.user.app_metadata?.provider as any) || 'email',
+            plan: 'AURUM Pro',
+            currencyPreference: 'TRY',
+            createdAt: sbSession.user.created_at,
+          };
+          setIsOnboardingOpen(true);
+        }
+
+        const appSession: Session = {
+          user: profile,
+          token: sbSession.access_token,
+          expiresAt: sbSession.expires_at ? sbSession.expires_at * 1000 : Date.now() + 30 * 24 * 60 * 60 * 1000,
+        };
+        setUser(profile);
+        setSession(appSession);
+        localStorage.setItem('aurum_auth_session_v1', JSON.stringify(appSession));
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null);
+        setSession(null);
+        localStorage.removeItem('aurum_auth_session_v1');
+      }
+    });
+
     setIsLoading(false);
+
+    return () => {
+      authListener?.subscription.unsubscribe();
+    };
   }, []);
 
   const login = async (credentials: LoginCredentials) => {
@@ -113,6 +166,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         session,
         isAuthenticated: !!user,
         isLoading,
+        isOnboardingOpen,
+        setIsOnboardingOpen,
         login,
         loginAsDemo,
         register,

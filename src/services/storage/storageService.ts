@@ -22,8 +22,21 @@ const STORAGE_KEYS = {
   RECURRING_TRANSACTIONS: 'aurum_recurring_v1',
 };
 
-// Initial realistic baseline holdings (including Nakit TL)
+// Clean baseline holdings for new real users
 export const DEFAULT_HOLDINGS: HoldingsMap = {
+  gramGold: 0,
+  quarterGold: 0,
+  halfGold: 0,
+  fullGold: 0,
+  usd: 0,
+  eur: 0,
+  try: 0,
+};
+
+export const DEFAULT_TRANSACTIONS: Transaction[] = [];
+
+// Demo baseline holdings for testing / demo load
+export const DEMO_HOLDINGS: HoldingsMap = {
   gramGold: 10.0,
   quarterGold: 2.0,
   halfGold: 0,
@@ -33,9 +46,8 @@ export const DEFAULT_HOLDINGS: HoldingsMap = {
   try: 15000.0,
 };
 
-// Default transactions (Asset Buys + Income + Expenses)
-// With clear distinction between transactionDate/Time and createdAt/createdDateStr
-export const DEFAULT_TRANSACTIONS: Transaction[] = [
+// Demo sample transactions
+export const DEMO_TRANSACTIONS: Transaction[] = [
   {
     id: 'tx-1a',
     assetKey: 'quarterGold',
@@ -189,8 +201,23 @@ export const DEFAULT_TRANSACTIONS: Transaction[] = [
   },
 ];
 
-// Initial realistic baseline accounts (Banka ve Nakit hesapları)
+// Default starter account for new real users
 export const DEFAULT_ACCOUNTS: Account[] = [
+  {
+    id: 'acc-cash',
+    name: 'Nakit Cüzdan',
+    type: 'cash',
+    initialBalance: 0,
+    balance: 0,
+    currency: 'TRY',
+    icon: 'Banknote',
+    color: '#10B981',
+    createdAt: Date.now(),
+  },
+];
+
+// Demo accounts for testing / demo reset
+export const DEMO_ACCOUNTS: Account[] = [
   {
     id: 'acc-ziraat',
     name: 'Ziraat Bankası',
@@ -256,8 +283,13 @@ export const DEFAULT_CATEGORIES: Category[] = [
   { id: 'cat-inc-other', name: 'Diğer Gelir', type: 'income', icon: 'PlusCircle', color: '#94A3B8', active: true, createdAt: Date.now() },
 ];
 
-// Initial recurring transactions (Sabit Gelir ve Giderler)
-export const DEFAULT_RECURRING: RecurringTransaction[] = [
+// Clean defaults for new real users
+export const DEFAULT_RECURRING: RecurringTransaction[] = [];
+export const DEFAULT_GOALS: Goal[] = [];
+export const DEFAULT_NOTES: NoteItem[] = [];
+
+// Demo recurring transactions for testing
+export const DEMO_RECURRING: RecurringTransaction[] = [
   {
     id: 'rec-salary',
     type: 'income',
@@ -323,8 +355,8 @@ export const DEFAULT_RECURRING: RecurringTransaction[] = [
   },
 ];
 
-// Realistic baseline financial goals
-export const DEFAULT_GOALS: Goal[] = [
+// Demo baseline financial goals
+export const DEMO_GOALS: Goal[] = [
   {
     id: 'goal-1',
     title: 'Yeni Araba',
@@ -349,8 +381,8 @@ export const DEFAULT_GOALS: Goal[] = [
   },
 ];
 
-// Default sample notes & tasks
-export const DEFAULT_NOTES: NoteItem[] = [
+// Demo sample notes & tasks
+export const DEMO_NOTES: NoteItem[] = [
   {
     id: 'note-1',
     title: 'Altın Portföy Stratejisi',
@@ -416,6 +448,7 @@ export const DEFAULT_NOTES: NoteItem[] = [
     updatedAt: Date.now() - 1 * 24 * 3600 * 1000,
   },
 ];
+
 
 export const DEFAULT_PREFERENCES: UserPreferences = {
   name: 'Melih',
@@ -620,17 +653,15 @@ export class StorageService {
 
   public static resetToDemo(): void {
     try {
-      localStorage.removeItem(STORAGE_KEYS.HOLDINGS);
-      localStorage.removeItem(STORAGE_KEYS.TRANSACTIONS);
-      localStorage.removeItem(STORAGE_KEYS.GOALS);
-      localStorage.removeItem(STORAGE_KEYS.PREFERENCES);
-      localStorage.removeItem(STORAGE_KEYS.NOTES);
-      localStorage.removeItem(STORAGE_KEYS.CUSTOM_ASSETS);
-      localStorage.removeItem(STORAGE_KEYS.ACCOUNTS);
-      localStorage.removeItem(STORAGE_KEYS.CATEGORIES);
-      localStorage.removeItem(STORAGE_KEYS.RECURRING_TRANSACTIONS);
+      StorageService.saveHoldings(DEMO_HOLDINGS);
+      StorageService.saveTransactions(DEMO_TRANSACTIONS);
+      StorageService.saveGoals(DEMO_GOALS);
+      StorageService.saveNotes(DEMO_NOTES);
+      StorageService.saveAccounts(DEMO_ACCOUNTS);
+      StorageService.saveCategories(DEFAULT_CATEGORIES);
+      StorageService.saveRecurring(DEMO_RECURRING);
     } catch (e) {
-      console.error('Sıfırlama hatası:', e);
+      console.error('Demo yükleme hatası:', e);
     }
   }
 

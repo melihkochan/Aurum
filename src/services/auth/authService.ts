@@ -1,4 +1,6 @@
 import type { User, Session, LoginCredentials, RegisterData } from './types';
+import { supabase } from '../supabase/supabaseClient';
+import { SupabaseService } from '../supabase/supabaseService';
 
 const STORAGE_KEYS = {
   AUTH_SESSION: 'aurum_auth_session_v1',
@@ -113,13 +115,53 @@ export class AuthService {
   }
 
   public static async login(credentials: LoginCredentials): Promise<{ user: User; session: Session }> {
-    // Artificial small delay for premium feel
-    await new Promise((r) => setTimeout(r, 350));
-
     const idInput = (credentials.identifier || credentials.email || credentials.username || '').trim().toLowerCase();
     const cleanId = idInput.startsWith('@') ? idInput.slice(1) : idInput;
     const password = credentials.password;
 
+    // 1. If it looks like an email or not demo 'melih', attempt Supabase Auth first
+    if (cleanId.includes('@')) {
+      try {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: cleanId,
+          password,
+        });
+
+        if (!error && data.user) {
+          // Fetch or generate profile
+          let userProfile = await SupabaseService.getProfile(data.user.id);
+          if (!userProfile) {
+            userProfile = {
+              id: data.user.id,
+              email: data.user.email || cleanId,
+              fullName: data.user.user_metadata?.full_name || cleanId.split('@')[0],
+              name: (data.user.user_metadata?.full_name || cleanId.split('@')[0]).split(' ')[0],
+              username: data.user.user_metadata?.username || cleanId.split('@')[0],
+              avatar: data.user.user_metadata?.avatar || 'beam-2',
+              avatarType: data.user.user_metadata?.avatar_type || 'beam',
+              avatarColor: data.user.user_metadata?.avatar_color || 'orange',
+              authProvider: 'email',
+              plan: 'AURUM Pro',
+              currencyPreference: 'TRY',
+              createdAt: data.user.created_at,
+            };
+          }
+
+          const session: Session = {
+            user: userProfile,
+            token: data.session?.access_token || 'sb_token_' + Date.now(),
+            expiresAt: data.session?.expires_at ? data.session.expires_at * 1000 : Date.now() + 30 * 24 * 60 * 60 * 1000,
+          };
+
+          localStorage.setItem(STORAGE_KEYS.AUTH_SESSION, JSON.stringify(session));
+          return { user: userProfile, session };
+        }
+      } catch (e) {
+        console.warn('Supabase signInWithPassword fallback:', e);
+      }
+    }
+
+    // 2. Local Demo / Fallback Login
     const users = this.getStoredUsers();
     let account = users.find((u) => {
       const uEmail = (u.user.email || '').toLowerCase();
@@ -131,7 +173,6 @@ export class AuthService {
       );
     });
 
-    // Special fallback for Melih demo user
     if (!account && (cleanId === 'melih' || cleanId === 'melih@aurum.app')) {
       account = { user: DEFAULT_USER, passwordHash: 'Password123!' };
       users.unshift(account);
@@ -157,8 +198,6 @@ export class AuthService {
   }
 
   public static async register(data: RegisterData): Promise<{ user: User; session: Session }> {
-    await new Promise((r) => setTimeout(r, 450));
-
     const email = data.email.trim().toLowerCase();
     const username = (data.username || '').trim().toLowerCase().replace(/^@/, '');
     const fullName = data.fullName.trim();
@@ -167,31 +206,78 @@ export class AuthService {
     if (!username || username.length < 3) {
       throw new Error('Kullanıcı adı en az 3 karakter olmalıdır.');
     }
-
     if (!email || !email.includes('@')) {
       throw new Error('Geçerli bir e-posta adresi giriniz.');
     }
-
     if (!fullName) {
       throw new Error('Lütfen adınızı ve soyadınızı giriniz.');
     }
-
     if (password.length < 8) {
       throw new Error('Şifreniz en az 8 karakter olmalıdır.');
     }
 
+    const firstName = fullName.split(' ')[0] || fullName;
+
+    // 1. Attempt registration via Supabase Auth
+    try {
+      const { data: sbData, error: sbError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+            username,
+            avatar: data.avatar || 'beam-2',
+            avatar_type: data.avatarType || 'beam',
+            avatar_color: data.avatarColor || 'orange',
+          },
+        },
+      });
+
+      if (sbError) {
+        // If Supabase throws specific error (e.g., user already registered)
+        if (sbError.message?.toLowerCase().includes('already registered')) {
+          throw new Error('Bu e-posta adresi ile kayıtlı bir hesap zaten mevcut.');
+        }
+      }
+
+      if (sbData?.user) {
+        const newUser: User = {
+          id: sbData.user.id,
+          email,
+          username,
+          fullName,
+          name: firstName,
+          avatar: data.avatar || 'beam-2',
+          avatarType: data.avatarType || 'beam',
+          avatarColor: data.avatarColor || 'orange',
+          authProvider: 'email',
+          plan: 'AURUM Pro',
+          currencyPreference: 'TRY',
+          createdAt: new Date().toISOString(),
+        };
+
+        const session: Session = {
+          user: newUser,
+          token: sbData.session?.access_token || 'sb_token_' + Date.now(),
+          expiresAt: sbData.session?.expires_at ? sbData.session.expires_at * 1000 : Date.now() + 30 * 24 * 60 * 60 * 1000,
+        };
+
+        localStorage.setItem(STORAGE_KEYS.AUTH_SESSION, JSON.stringify(session));
+        return { user: newUser, session };
+      }
+    } catch (err: any) {
+      if (err.message && !err.message.includes('fetch')) {
+        throw err;
+      }
+      console.warn('Supabase signUp fallback to local storage:', err);
+    }
+
+    // 2. Local fallback registration if offline
     const users = this.getStoredUsers();
-    const emailExists = users.some((u) => u.user.email.toLowerCase() === email);
-    if (emailExists) {
+    if (users.some((u) => u.user.email.toLowerCase() === email)) {
       throw new Error('Bu e-posta adresi ile kayıtlı bir hesap zaten mevcut.');
     }
-
-    const usernameExists = users.some((u) => (u.user.username || '').toLowerCase() === username);
-    if (usernameExists) {
-      throw new Error('Bu kullanıcı adı zaten kullanılıyor. Lütfen başka bir kullanıcı adı seçiniz.');
-    }
-
-    const firstName = fullName.split(' ')[0] || fullName;
 
     const newUser: User = {
       id: 'usr-' + Math.random().toString(36).substring(2, 9),
@@ -208,12 +294,7 @@ export class AuthService {
       createdAt: new Date().toISOString(),
     };
 
-    const newAccount: StoredUserAccount = {
-      user: newUser,
-      passwordHash: password,
-    };
-
-    users.push(newAccount);
+    users.push({ user: newUser, passwordHash: password });
     localStorage.setItem(STORAGE_KEYS.REGISTERED_USERS, JSON.stringify(users));
 
     const session: Session = {
@@ -226,8 +307,7 @@ export class AuthService {
     return { user: newUser, session };
   }
 
-  public static async updateProfile(updates: Partial<User>): Promise<User> {
-    await new Promise((r) => setTimeout(r, 250));
+  public static async updateProfile(updates: Partial<User & { onboardingCompleted?: boolean }>): Promise<User> {
     const session = this.getSession();
     if (!session) throw new Error('Aktif oturum bulunamadı.');
 
@@ -235,6 +315,14 @@ export class AuthService {
     const updatedSession: Session = { ...session, user: updatedUser };
     localStorage.setItem(STORAGE_KEYS.AUTH_SESSION, JSON.stringify(updatedSession));
 
+    // Sync to Supabase in cloud
+    try {
+      await SupabaseService.updateProfile(session.user.id, updates);
+    } catch (e) {
+      console.warn('Supabase profile update warning:', e);
+    }
+
+    // Sync local store
     const users = this.getStoredUsers();
     const updatedUsers = users.map((u) => (u.user.id === updatedUser.id ? { ...u, user: updatedUser } : u));
     localStorage.setItem(STORAGE_KEYS.REGISTERED_USERS, JSON.stringify(updatedUsers));
@@ -243,47 +331,72 @@ export class AuthService {
   }
 
   public static async changePassword(currentPassword: string, newPassword: string): Promise<void> {
-    await new Promise((r) => setTimeout(r, 350));
     const session = this.getSession();
     if (!session) throw new Error('Aktif oturum bulunamadı.');
-
-    const users = this.getStoredUsers();
-    const userAcc = users.find((u) => u.user.id === session.user.id);
-    if (!userAcc) throw new Error('Kullanıcı hesabı bulunamadı.');
-
-    if (userAcc.passwordHash && userAcc.passwordHash !== currentPassword) {
-      throw new Error('Mevcut şifreniz hatalı. Lütfen kontrol edip tekrar deneyiniz.');
-    }
 
     if (!newPassword || newPassword.length < 8) {
       throw new Error('Yeni şifreniz en az 8 karakter uzunluğunda olmalıdır.');
     }
 
-    userAcc.passwordHash = newPassword;
-    localStorage.setItem(STORAGE_KEYS.REGISTERED_USERS, JSON.stringify(users));
+    // Try Supabase Auth password update
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) throw error;
+    } catch {
+      // Local fallback
+      const users = this.getStoredUsers();
+      const userAcc = users.find((u) => u.user.id === session.user.id);
+      if (userAcc && userAcc.passwordHash && userAcc.passwordHash !== currentPassword) {
+        throw new Error('Mevcut şifreniz hatalı. Lütfen kontrol edip tekrar deneyiniz.');
+      }
+      if (userAcc) {
+        userAcc.passwordHash = newPassword;
+        localStorage.setItem(STORAGE_KEYS.REGISTERED_USERS, JSON.stringify(users));
+      }
+    }
   }
 
   public static async logout(): Promise<void> {
-    await new Promise((r) => setTimeout(r, 200));
+    try {
+      await supabase.auth.signOut();
+    } catch (e) {
+      console.warn('Supabase signOut warning:', e);
+    }
     localStorage.removeItem(STORAGE_KEYS.AUTH_SESSION);
   }
 
   public static async resetPassword(email: string): Promise<void> {
-    await new Promise((r) => setTimeout(r, 500));
     const cleanEmail = email.trim().toLowerCase();
     if (!cleanEmail || !cleanEmail.includes('@')) {
       throw new Error('Lütfen geçerli bir e-posta adresi girin.');
     }
-    // Simulation success
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
+        redirectTo: window.location.origin,
+      });
+      if (error) throw error;
+    } catch {
+      // Graceful fallback
+    }
   }
 
   public static async loginWithGoogle(): Promise<void> {
-    await new Promise((r) => setTimeout(r, 300));
-    throw new Error('Google ile giriş entegrasyonu Supabase Auth bağlantısından sonra aktif olacaktır.');
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin,
+      },
+    });
+    if (error) throw error;
   }
 
   public static async loginWithApple(): Promise<void> {
-    await new Promise((r) => setTimeout(r, 300));
-    throw new Error('Apple ile giriş entegrasyonu Supabase Auth bağlantısından sonra aktif olacaktır.');
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'apple',
+      options: {
+        redirectTo: window.location.origin,
+      },
+    });
+    if (error) throw error;
   }
 }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { PortfolioProvider, usePortfolio } from './context/PortfolioContext';
 import { Sidebar } from './components/navigation/Sidebar';
 import type { NavTab } from './components/navigation/Sidebar';
@@ -23,6 +23,7 @@ import { NotesView } from './components/views/NotesView';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AuthView } from './components/auth/AuthView';
 import { ForgotPasswordView } from './components/auth/ForgotPasswordView';
+import { OnboardingModal } from './components/auth/OnboardingModal';
 import { UserAvatar } from './components/ui/UserAvatar';
 import { ScrollToTop } from './components/ui/ScrollToTop';
 import type { AssetKey } from './services/market/types';
@@ -43,8 +44,14 @@ const MainShell: React.FC = () => {
   const [isAddGoalModalOpen, setIsAddGoalModalOpen] = useState(false);
 
   const { preferences } = usePortfolio();
-  const { user, logout } = useAuth();
+  const { user, logout, isOnboardingOpen, setIsOnboardingOpen } = useAuth();
   const displayName = user?.name || preferences.name || 'Melih';
+
+  const todayDateStr = useMemo(() => {
+    const now = new Date();
+    const months = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
+    return `${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+  }, []);
 
   const handleOpenAddModal = (assetKey?: string) => {
     if (assetKey) {
@@ -204,7 +211,7 @@ const MainShell: React.FC = () => {
             {/* Live Date display */}
             <div className="flex items-center gap-2 text-xs font-semibold text-zinc-400 bg-white/[0.03] border border-white/[0.05] px-3.5 py-1.5 rounded-xl">
               <Calendar className="w-3.5 h-3.5 text-[#E5B85C]" />
-              <span>18 Eylül 2026</span>
+              <span>{todayDateStr}</span>
             </div>
 
             {/* User Profile Badge & Logout Button */}
@@ -304,6 +311,12 @@ const MainShell: React.FC = () => {
       <AddGoalModal
         isOpen={isAddGoalModalOpen}
         onClose={handleCloseGoalModal}
+      />
+
+      {/* Onboarding Profile Completion Modal for Google, Apple, and Email users */}
+      <OnboardingModal
+        isOpen={isOnboardingOpen}
+        onComplete={() => setIsOnboardingOpen(false)}
       />
 
       {/* Floating Scroll To Top */}

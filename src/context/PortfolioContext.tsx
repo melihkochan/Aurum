@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, useMemo, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { ASSET_DEFINITIONS } from '../services/market/types';
 import type { AssetKey, MarketPricesMap, AssetCategory } from '../services/market/types';
 import type {
@@ -19,6 +19,8 @@ import type {
 } from '../services/portfolio/types';
 import { StorageService } from '../services/storage/storageService';
 import { marketService } from '../services/market/marketService';
+import { useAuth } from './AuthContext';
+import { SupabaseService } from '../services/supabase/supabaseService';
 import {
   calculateAccountBalances,
   calculateTotalNetWorth as engineCalculateTotalNetWorth,
@@ -237,6 +239,57 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [marketError, setMarketError] = useState<string | undefined>(undefined);
   const [isLoadingPrices, setIsLoadingPrices] = useState<boolean>(true);
 
+  const { user } = useAuth();
+  const userId = user?.id;
+  const isCloudLoaded = useRef(false);
+
+  // Load cloud data from Supabase if user is logged in
+  useEffect(() => {
+    if (!userId) return;
+    let isCancelled = false;
+
+    const loadCloudData = async () => {
+      try {
+        const cloudData = await SupabaseService.fetchAllUserData(userId);
+        if (isCancelled || !cloudData) return;
+
+        if (cloudData.transactions && cloudData.transactions.length > 0) {
+          setTransactions(cloudData.transactions);
+        }
+        if (cloudData.accounts && cloudData.accounts.length > 0) {
+          setAccounts(cloudData.accounts);
+        }
+        if (cloudData.categories && cloudData.categories.length > 0) {
+          setCategories(cloudData.categories);
+        }
+        if (cloudData.recurring && cloudData.recurring.length > 0) {
+          setRecurringTransactions(cloudData.recurring);
+        }
+        if (cloudData.goals && cloudData.goals.length > 0) {
+          setGoals(cloudData.goals);
+        }
+        if (cloudData.notes && cloudData.notes.length > 0) {
+          setNotes(cloudData.notes);
+        }
+        if (cloudData.customAssets && Object.keys(cloudData.customAssets).length > 0) {
+          setCustomAssets(cloudData.customAssets);
+        }
+        if (cloudData.preferences) {
+          setPreferences((prev) => ({ ...prev, ...cloudData.preferences }));
+        }
+        isCloudLoaded.current = true;
+      } catch (e) {
+        console.warn('Supabase fetchAllUserData error:', e);
+      }
+    };
+
+    loadCloudData();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [userId]);
+
   // Initialize market service
   useEffect(() => {
     let isMounted = true;
@@ -388,10 +441,13 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     };
   }, [transactions, marketPrices, customAssets, computedAccounts]);
 
-  // Sync to localStorage
+  // Sync to localStorage & Supabase
   useEffect(() => {
     StorageService.saveHoldings(holdings);
-  }, [holdings]);
+    if (userId) {
+      SupabaseService.saveHoldings(userId, holdings);
+    }
+  }, [holdings, userId]);
 
   useEffect(() => {
     StorageService.saveTransactions(transactions);
@@ -411,7 +467,10 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   useEffect(() => {
     StorageService.savePreferences(preferences);
-  }, [preferences]);
+    if (userId) {
+      SupabaseService.savePreferences(userId, preferences);
+    }
+  }, [preferences, userId]);
 
   useEffect(() => {
     StorageService.saveGoals(goals);
@@ -423,7 +482,10 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   useEffect(() => {
     StorageService.saveCustomAssets(customAssets);
-  }, [customAssets]);
+    if (userId) {
+      SupabaseService.saveAllCustomAssets(userId, customAssets);
+    }
+  }, [customAssets, userId]);
 
   // Sync active theme to root document
   useEffect(() => {
@@ -582,7 +644,10 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     };
 
     setTransactions((prev) => [newTx, ...prev]);
-  }, [marketPrices]);
+    if (userId) {
+      SupabaseService.saveTransaction(userId, newTx);
+    }
+  }, [marketPrices, userId]);
 
   const removeAsset = useCallback((
     assetKey: AssetKey, 
@@ -630,7 +695,10 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     };
 
     setTransactions((prev) => [newTx, ...prev]);
-  }, [marketPrices]);
+    if (userId) {
+      SupabaseService.saveTransaction(userId, newTx);
+    }
+  }, [marketPrices, userId]);
 
   const updateTransaction = useCallback((id: string, updates: Partial<Transaction>) => {
     setTransactions((prev) => {
@@ -645,18 +713,33 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           updated.totalValue = Number(((updated.quantity || 1) * updates.purchasePrice).toFixed(2));
         }
 
+        if (userId) {
+          SupabaseService.saveTransaction(userId, updated);
+        }
         return updated;
       });
     });
-  }, []);
+  }, [userId]);
 
   const deleteTransaction = useCallback((id: string) => {
     setTransactions((prev) => prev.filter((t) => t.id !== id));
-  }, []);
+    if (userId) {
+      SupabaseService.deleteTransaction(userId, id);
+    }
+  }, [userId]);
 
   const markTransactionStatus = useCallback((id: string, status: TransactionStatus) => {
-    setTransactions((prev) => prev.map((t) => (t.id === id ? { ...t, status } : t)));
-  }, []);
+    setTransactions((prev) => prev.map((t) => {
+      if (t.id === id) {
+        const updated = { ...t, status };
+        if (userId) {
+          SupabaseService.saveTransaction(userId, updated);
+        }
+        return updated;
+      }
+      return t;
+    }));
+  }, [userId]);
 
   // Income & Expense Actions with Account & Status Support
   const addIncome = useCallback((
@@ -693,7 +776,10 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     };
 
     setTransactions((prev) => [newTx, ...prev]);
-  }, []);
+    if (userId) {
+      SupabaseService.saveTransaction(userId, newTx);
+    }
+  }, [userId]);
 
   const addExpense = useCallback((
     amount: number, 
@@ -729,7 +815,10 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     };
 
     setTransactions((prev) => [newTx, ...prev]);
-  }, []);
+    if (userId) {
+      SupabaseService.saveTransaction(userId, newTx);
+    }
+  }, [userId]);
 
   // Para Transferi Eylemi (Kaynak hesaptan hedef hesaba transfer - Net worth DEĞİŞMEZ)
   const transferFunds = useCallback((
@@ -765,7 +854,10 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     };
 
     setTransactions((prev) => [newTx, ...prev]);
-  }, []);
+    if (userId) {
+      SupabaseService.saveTransaction(userId, newTx);
+    }
+  }, [userId]);
 
   // Banka & Nakit Hesap Yönetimi
   const addAccount = useCallback((accountData: Omit<Account, 'id' | 'createdAt'>) => {
@@ -775,17 +867,32 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       createdAt: Date.now(),
     };
     setAccounts((prev) => [...prev, newAccount]);
-  }, []);
+    if (userId) {
+      SupabaseService.saveAccount(userId, newAccount);
+    }
+  }, [userId]);
 
   const updateAccount = useCallback((id: string, updates: Partial<Account>) => {
     setAccounts((prev) =>
-      prev.map((acc) => (acc.id === id ? { ...acc, ...updates, updatedAt: Date.now() } : acc))
+      prev.map((acc) => {
+        if (acc.id === id) {
+          const updated = { ...acc, ...updates, updatedAt: Date.now() };
+          if (userId) {
+            SupabaseService.saveAccount(userId, updated);
+          }
+          return updated;
+        }
+        return acc;
+      })
     );
-  }, []);
+  }, [userId]);
 
   const deleteAccount = useCallback((id: string) => {
     setAccounts((prev) => prev.filter((acc) => acc.id !== id));
-  }, []);
+    if (userId) {
+      SupabaseService.deleteAccount(userId, id);
+    }
+  }, [userId]);
 
   // Sabit / Tekrarlayan İşlem Yönetimi
   const addRecurring = useCallback((recData: Omit<RecurringTransaction, 'id' | 'createdAt' | 'updatedAt'>) => {
@@ -798,23 +905,47 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       updatedAt: Date.now(),
     };
     setRecurringTransactions((prev) => [...prev, newRec]);
-  }, []);
+    if (userId) {
+      SupabaseService.saveRecurring(userId, newRec);
+    }
+  }, [userId]);
 
   const updateRecurring = useCallback((id: string, updates: Partial<RecurringTransaction>) => {
     setRecurringTransactions((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, ...updates, updatedAt: Date.now() } : r))
+      prev.map((r) => {
+        if (r.id === id) {
+          const updated = { ...r, ...updates, updatedAt: Date.now() };
+          if (userId) {
+            SupabaseService.saveRecurring(userId, updated);
+          }
+          return updated;
+        }
+        return r;
+      })
     );
-  }, []);
+  }, [userId]);
 
   const deleteRecurring = useCallback((id: string) => {
     setRecurringTransactions((prev) => prev.filter((r) => r.id !== id));
-  }, []);
+    if (userId) {
+      SupabaseService.deleteRecurring(userId, id);
+    }
+  }, [userId]);
 
   const toggleRecurring = useCallback((id: string) => {
     setRecurringTransactions((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, active: !r.active, updatedAt: Date.now() } : r))
+      prev.map((r) => {
+        if (r.id === id) {
+          const updated = { ...r, active: !r.active, updatedAt: Date.now() };
+          if (userId) {
+            SupabaseService.saveRecurring(userId, updated);
+          }
+          return updated;
+        }
+        return r;
+      })
     );
-  }, []);
+  }, [userId]);
 
   // Kategori Ekleme
   const addCategory = useCallback((catData: Omit<Category, 'id' | 'createdAt'>) => {
@@ -824,7 +955,10 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       createdAt: Date.now(),
     };
     setCategories((prev) => [...prev, newCat]);
-  }, []);
+    if (userId) {
+      SupabaseService.saveCategory(userId, newCat);
+    }
+  }, [userId]);
 
   // Goal Actions
   const addGoal = useCallback((goalData: Omit<Goal, 'id' | 'createdAt'>) => {
@@ -834,27 +968,48 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       createdAt: Date.now(),
     };
     setGoals((prev) => [newGoal, ...prev]);
-  }, []);
+    if (userId) {
+      SupabaseService.saveGoal(userId, newGoal);
+    }
+  }, [userId]);
 
   const updateGoal = useCallback((id: string, updates: Partial<Goal>) => {
-    setGoals((prev) => prev.map((g) => (g.id === id ? { ...g, ...updates } : g)));
-  }, []);
+    setGoals((prev) =>
+      prev.map((g) => {
+        if (g.id === id) {
+          const updated = { ...g, ...updates };
+          if (userId) {
+            SupabaseService.saveGoal(userId, updated);
+          }
+          return updated;
+        }
+        return g;
+      })
+    );
+  }, [userId]);
 
   const deleteGoal = useCallback((id: string) => {
     setGoals((prev) => prev.filter((g) => g.id !== id));
-  }, []);
+    if (userId) {
+      SupabaseService.deleteGoal(userId, id);
+    }
+  }, [userId]);
 
   const allocateToGoal = useCallback((goalId: string, amount: number) => {
     if (amount <= 0) return;
     setGoals((prev) =>
       prev.map((g) => {
         if (g.id === goalId) {
-          return { ...g, currentAmount: g.currentAmount + amount };
+          const updated = { ...g, currentAmount: g.currentAmount + amount };
+          if (userId) {
+            SupabaseService.saveGoal(userId, updated);
+          }
+          return updated;
         }
         return g;
       })
     );
-  }, []);
+  }, [userId]);
 
   // Notes & Tasks Actions
   const addNote = useCallback((item: Omit<NoteItem, 'id' | 'createdAt' | 'updatedAt'>) => {
@@ -865,34 +1020,64 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       updatedAt: Date.now(),
     };
     setNotes((prev) => [newNote, ...prev]);
-  }, []);
+    if (userId) {
+      SupabaseService.saveNote(userId, newNote);
+    }
+  }, [userId]);
 
   const updateNote = useCallback((id: string, updates: Partial<NoteItem>) => {
     setNotes((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, ...updates, updatedAt: Date.now() } : n))
+      prev.map((n) => {
+        if (n.id === id) {
+          const updated = { ...n, ...updates, updatedAt: Date.now() };
+          if (userId) {
+            SupabaseService.saveNote(userId, updated);
+          }
+          return updated;
+        }
+        return n;
+      })
     );
-  }, []);
+  }, [userId]);
 
   const deleteNote = useCallback((id: string) => {
     setNotes((prev) => prev.filter((n) => n.id !== id));
-  }, []);
+    if (userId) {
+      SupabaseService.deleteNote(userId, id);
+    }
+  }, [userId]);
 
   const toggleTodo = useCallback((id: string) => {
     setNotes((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, completed: !n.completed, updatedAt: Date.now() } : n))
+      prev.map((n) => {
+        if (n.id === id) {
+          const updated = { ...n, completed: !n.completed, updatedAt: Date.now() };
+          if (userId) {
+            SupabaseService.saveNote(userId, updated);
+          }
+          return updated;
+        }
+        return n;
+      })
     );
-  }, []);
+  }, [userId]);
 
   const updateCustomAssetMeta = useCallback((assetKey: AssetKey, meta: Partial<CustomAssetMeta>) => {
-    setCustomAssets((prev) => ({
-      ...prev,
-      [assetKey]: {
+    setCustomAssets((prev) => {
+      const updatedMeta = {
         ...(prev[assetKey] || {}),
         ...meta,
         updatedAt: Date.now(),
-      },
-    }));
-  }, []);
+      };
+      if (userId) {
+        SupabaseService.saveCustomAsset(userId, assetKey, updatedMeta);
+      }
+      return {
+        ...prev,
+        [assetKey]: updatedMeta,
+      };
+    });
+  }, [userId]);
 
   // UI Preference Actions
   const togglePrivacy = useCallback(() => {

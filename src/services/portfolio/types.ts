@@ -173,9 +173,11 @@ export interface PortfolioSnapshot {
 
 export type AurumThemeId = 'aurum-gold' | 'emerald-vault' | 'sapphire-night' | 'obsidian-oled';
 
+export type CurrencyCode = 'TRY' | 'USD' | 'EUR';
+
 export interface UserPreferences {
   name: string;
-  currency: 'TRY' | 'USD' | 'EUR';
+  currency: CurrencyCode;
   isBalanceHidden: boolean;
   autoRefreshEnabled: boolean;
   refreshIntervalSeconds: number;

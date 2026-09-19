@@ -547,12 +547,18 @@ export function processDueRecurringTransactions(
   };
 }
 
+export function getTodayDateStr(): string {
+  const now = new Date();
+  const months = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
+  return `${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+}
+
 /**
  * 10. BUGÜNKÜ ÖZET (GELİR, GİDER, NET)
  */
 export function calculateTodaySummary(
   transactions: Transaction[],
-  todayStr = '18 Eylül 2026'
+  todayStr = getTodayDateStr()
 ): TodaySummary {
   let incomeToday = 0;
   let expenseToday = 0;

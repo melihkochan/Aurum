@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   User as UserIcon,
   Shield,
@@ -63,11 +63,22 @@ export const SettingsView: React.FC = () => {
     clearPortfolio,
     currencySymbol,
     marketStatus,
+    marketPrices,
   } = usePortfolio();
 
   const { user, updateProfile, changePassword, logout } = useAuth();
 
   const [activeSection, setActiveSection] = useState<SettingsSectionId>('account');
+
+  // Dynamic live market update timestamp
+  const lastUpdateTimeStr = useMemo(() => {
+    const quoteTime = marketPrices?.gramGold?.lastUpdated;
+    const now = new Date();
+    const months = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
+    const datePart = `${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+    const timePart = quoteTime || `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    return `${datePart} • ${timePart}`;
+  }, [marketPrices]);
 
   // Account editing states
   const [nameInput, setNameInput] = useState(user?.fullName || preferences.name || 'Melih KOÇHAN');
@@ -589,7 +600,7 @@ export const SettingsView: React.FC = () => {
 
                 <div className="pt-5 flex items-center justify-between text-xs text-zinc-400">
                   <span>Son Başarılı Güncelleme</span>
-                  <span className="font-mono text-zinc-300">18 Eylül 2026 • 23:15</span>
+                  <span className="font-mono text-zinc-300">{lastUpdateTimeStr}</span>
                 </div>
               </div>
             </div>
@@ -715,7 +726,7 @@ export const SettingsView: React.FC = () => {
                   <div>
                     <span className="text-sm font-bold text-white block">Hesap Şifresi</span>
                     <span className="text-xs text-zinc-400 mt-0.5 block">
-                      Şifreniz en son 18 Eylül 2026 tarihinde güncellendi
+                      Hesap şifreniz güncel ve koruma altındadır
                     </span>
                   </div>
                   <button
