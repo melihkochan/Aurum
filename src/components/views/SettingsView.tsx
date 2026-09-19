@@ -92,7 +92,7 @@ export const SettingsView: React.FC = () => {
   const [loggedOutOtherDevices, setLoggedOutOtherDevices] = useState(false);
 
   const getPasswordStrength = (pwd: string) => {
-    if (!pwd) return { score: 0, label: '', color: '' };
+    if (!pwd) return { score: 0, label: '', badgeClass: '', barColor: '' };
     let score = 0;
     if (pwd.length >= 8) score++;
     if (pwd.length >= 10) score++;
@@ -100,9 +100,24 @@ export const SettingsView: React.FC = () => {
     if (/[0-9]/.test(pwd)) score++;
     if (/[^A-Za-z0-9]/.test(pwd)) score++;
 
-    if (score <= 2) return { score: 1, label: 'Zayıf', color: 'bg-rose-500 text-rose-400' };
-    if (score <= 3) return { score: 2, label: 'Orta Seviye', color: 'bg-amber-500 text-amber-400' };
-    return { score: 3, label: 'Güçlü & Güvenli', color: 'bg-emerald-500 text-emerald-400' };
+    if (score <= 2) return {
+      score: 1,
+      label: 'Zayıf',
+      badgeClass: 'px-2 py-0.5 rounded-md bg-rose-500/15 border border-rose-500/30 text-rose-400 font-bold',
+      barColor: 'bg-rose-500'
+    };
+    if (score <= 3) return {
+      score: 2,
+      label: 'Orta',
+      badgeClass: 'px-2 py-0.5 rounded-md bg-amber-500/15 border border-amber-500/30 text-amber-300 font-bold',
+      barColor: 'bg-amber-500'
+    };
+    return {
+      score: 3,
+      label: 'Güçlü & Güvenli',
+      badgeClass: 'px-2 py-0.5 rounded-md bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 font-bold',
+      barColor: 'bg-emerald-500'
+    };
   };
 
   const handleClosePasswordModal = () => {
@@ -981,7 +996,7 @@ export const SettingsView: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-semibold text-zinc-300 block">Yeni Şifre</label>
                   {newPassword && (
-                    <span className={`text-[10px] font-bold ${getPasswordStrength(newPassword).color}`}>
+                    <span className={`text-[10px] ${getPasswordStrength(newPassword).badgeClass}`}>
                       {getPasswordStrength(newPassword).label}
                     </span>
                   )}
@@ -1008,13 +1023,19 @@ export const SettingsView: React.FC = () => {
                 {newPassword && (
                   <div className="flex items-center gap-1.5 pt-1">
                     <div className={`h-1 flex-1 rounded-full transition-all duration-300 ${
-                      getPasswordStrength(newPassword).score >= 1 ? 'bg-rose-500' : 'bg-white/10'
+                      getPasswordStrength(newPassword).score >= 1
+                        ? getPasswordStrength(newPassword).barColor
+                        : 'bg-white/10'
                     }`} />
                     <div className={`h-1 flex-1 rounded-full transition-all duration-300 ${
-                      getPasswordStrength(newPassword).score >= 2 ? 'bg-amber-500' : 'bg-white/10'
+                      getPasswordStrength(newPassword).score >= 2
+                        ? getPasswordStrength(newPassword).barColor
+                        : 'bg-white/10'
                     }`} />
                     <div className={`h-1 flex-1 rounded-full transition-all duration-300 ${
-                      getPasswordStrength(newPassword).score >= 3 ? 'bg-emerald-500' : 'bg-white/10'
+                      getPasswordStrength(newPassword).score >= 3
+                        ? getPasswordStrength(newPassword).barColor
+                        : 'bg-white/10'
                     }`} />
                   </div>
                 )}
@@ -1026,11 +1047,11 @@ export const SettingsView: React.FC = () => {
                   <label className="text-xs font-semibold text-zinc-300 block">Yeni Şifreyi Onayla</label>
                   {confirmPassword && (
                     confirmPassword === newPassword ? (
-                      <span className="text-[10px] text-emerald-400 font-bold flex items-center gap-1">
+                      <span className="text-[10px] px-2 py-0.5 rounded-md bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-bold flex items-center gap-1">
                         <CheckCircle2 className="w-3 h-3" /> Eşleşti
                       </span>
                     ) : (
-                      <span className="text-[10px] text-rose-400 font-bold flex items-center gap-1">
+                      <span className="text-[10px] px-2 py-0.5 rounded-md bg-rose-500/15 border border-rose-500/30 text-rose-400 font-bold flex items-center gap-1">
                         <AlertCircle className="w-3 h-3" /> Eşleşmiyor
                       </span>
                     )
