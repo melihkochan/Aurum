@@ -1,5 +1,5 @@
 import React from 'react';
-import { RefreshCw, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { usePortfolio } from '../../context/PortfolioContext';
 import { ASSET_DEFINITIONS } from '../../services/market/types';
 import type { AssetKey } from '../../services/market/types';
@@ -8,7 +8,7 @@ import { LiveIndicator } from '../ui/LiveIndicator';
 import { ASSET_IMAGES } from '../ui/AssetIcon';
 
 export const MarketOverview: React.FC = () => {
-  const { marketPrices, isLoadingPrices, marketStatus, marketError, refreshMarket } = usePortfolio();
+  const { marketPrices, marketStatus, marketError, refreshMarket } = usePortfolio();
 
   const primaryKeys: AssetKey[] = ['gramGold', 'quarterGold', 'usd', 'eur'];
   const lastUpdated = marketPrices ? marketPrices.gramGold.lastUpdated : '--:--';
@@ -40,16 +40,6 @@ export const MarketOverview: React.FC = () => {
             Son güncelleme: {lastUpdated} (TCMB & Kapalıçarşı Serbest Piyasa)
           </span>
         </div>
-
-        <button
-          onClick={refreshMarket}
-          disabled={isLoadingPrices}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] text-xs font-semibold text-zinc-300 hover:text-white transition-all cursor-pointer disabled:opacity-50 self-start sm:self-auto"
-          title="Fiyatları Yenile"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${isLoadingPrices ? 'animate-spin text-[#E5B85C]' : ''}`} />
-          <span>Yenile</span>
-        </button>
       </div>
 
       {/* Error Fallback Banner */}
