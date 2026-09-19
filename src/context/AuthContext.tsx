@@ -11,6 +11,7 @@ interface AuthContextType {
   loginAsDemo: () => Promise<void>;
   register: (data: RegisterData) => Promise<void>;
   updateProfile: (updates: Partial<User>) => Promise<void>;
+  changePassword: (oldPassword: string, newPassword: string) => Promise<void>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
@@ -78,6 +79,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const changePassword = async (oldPassword: string, newPassword: string) => {
+    await AuthService.changePassword(oldPassword, newPassword);
+  };
+
   const logout = async () => {
     setIsLoading(true);
     try {
@@ -112,6 +117,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         loginAsDemo,
         register,
         updateProfile,
+        changePassword,
         logout,
         resetPassword,
         loginWithGoogle,

@@ -242,6 +242,27 @@ export class AuthService {
     return updatedUser;
   }
 
+  public static async changePassword(currentPassword: string, newPassword: string): Promise<void> {
+    await new Promise((r) => setTimeout(r, 350));
+    const session = this.getSession();
+    if (!session) throw new Error('Aktif oturum bulunamadı.');
+
+    const users = this.getStoredUsers();
+    const userAcc = users.find((u) => u.user.id === session.user.id);
+    if (!userAcc) throw new Error('Kullanıcı hesabı bulunamadı.');
+
+    if (userAcc.passwordHash && userAcc.passwordHash !== currentPassword) {
+      throw new Error('Mevcut şifreniz hatalı. Lütfen kontrol edip tekrar deneyiniz.');
+    }
+
+    if (!newPassword || newPassword.length < 8) {
+      throw new Error('Yeni şifreniz en az 8 karakter uzunluğunda olmalıdır.');
+    }
+
+    userAcc.passwordHash = newPassword;
+    localStorage.setItem(STORAGE_KEYS.REGISTERED_USERS, JSON.stringify(users));
+  }
+
   public static async logout(): Promise<void> {
     await new Promise((r) => setTimeout(r, 200));
     localStorage.removeItem(STORAGE_KEYS.AUTH_SESSION);

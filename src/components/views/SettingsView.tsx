@@ -12,7 +12,14 @@ import {
   Download,
   Smartphone,
   Globe,
-  KeyRound
+  KeyRound,
+  Eye,
+  EyeOff,
+  CheckCircle2,
+  AlertCircle,
+  ShieldCheck,
+  Sparkles,
+  Server
 } from 'lucide-react';
 import { usePortfolio } from '../../context/PortfolioContext';
 import { useAuth } from '../../context/AuthContext';
@@ -27,7 +34,8 @@ export type SettingsSectionId =
   | 'privacy'
   | 'market'
   | 'data'
-  | 'security';
+  | 'security'
+  | 'about';
 
 interface SectionNavItem {
   id: SettingsSectionId;
@@ -42,6 +50,7 @@ const NAV_ITEMS: SectionNavItem[] = [
   { id: 'market', label: 'Piyasa & Veri Tercihleri', icon: Sliders },
   { id: 'data', label: 'Hesap ve Veri Yönetimi', icon: Database },
   { id: 'security', label: 'Güvenlik', icon: Lock },
+  { id: 'about', label: 'Hakkında & Gizlilik', icon: ShieldCheck, badge: 'Supabase' },
 ];
 
 export const SettingsView: React.FC = () => {
@@ -55,7 +64,7 @@ export const SettingsView: React.FC = () => {
     marketStatus,
   } = usePortfolio();
 
-  const { user, updateProfile, logout } = useAuth();
+  const { user, updateProfile, changePassword, logout } = useAuth();
 
   const [activeSection, setActiveSection] = useState<SettingsSectionId>('account');
 
@@ -68,13 +77,78 @@ export const SettingsView: React.FC = () => {
   const [avatarColor, setAvatarColor] = useState<AvatarColor>(user?.avatarColor || 'orange');
   const [saveSuccess, setSaveSuccess] = useState(false);
 
-  // Modals
+  // Modals & Security
   const [isDeleteAccountOpen, setIsDeleteAccountOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showOldPassword, setShowOldPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
   const [passwordSuccess, setPasswordSuccess] = useState(false);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [loggedOutOtherDevices, setLoggedOutOtherDevices] = useState(false);
+
+  const getPasswordStrength = (pwd: string) => {
+    if (!pwd) return { score: 0, label: '', color: '' };
+    let score = 0;
+    if (pwd.length >= 8) score++;
+    if (pwd.length >= 10) score++;
+    if (/[A-Z]/.test(pwd)) score++;
+    if (/[0-9]/.test(pwd)) score++;
+    if (/[^A-Za-z0-9]/.test(pwd)) score++;
+
+    if (score <= 2) return { score: 1, label: 'Zayıf', color: 'bg-rose-500 text-rose-400' };
+    if (score <= 3) return { score: 2, label: 'Orta Seviye', color: 'bg-amber-500 text-amber-400' };
+    return { score: 3, label: 'Güçlü & Güvenli', color: 'bg-emerald-500 text-emerald-400' };
+  };
+
+  const handleClosePasswordModal = () => {
+    setIsPasswordModalOpen(false);
+    setPasswordSuccess(false);
+    setPasswordError(null);
+    setOldPassword('');
+    setNewPassword('');
+    setConfirmPassword('');
+    setShowOldPassword(false);
+    setShowNewPassword(false);
+    setShowConfirmPassword(false);
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordError(null);
+
+    if (!oldPassword) {
+      setPasswordError('Lütfen mevcut şifrenizi giriniz.');
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      setPasswordError('Yeni şifre en az 8 karakter uzunluğunda olmalıdır.');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setPasswordError('Yeni şifre ile şifre onayı birbiriyle eşleşmiyor.');
+      return;
+    }
+
+    setIsChangingPassword(true);
+    try {
+      await changePassword(oldPassword, newPassword);
+      setPasswordSuccess(true);
+      setTimeout(() => {
+        handleClosePasswordModal();
+      }, 1600);
+    } catch (err: any) {
+      setPasswordError(err?.message || 'Şifre güncellenirken bir hata oluştu.');
+    } finally {
+      setIsChangingPassword(false);
+    }
+  };
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -685,6 +759,159 @@ export const SettingsView: React.FC = () => {
             </div>
           )}
 
+          {/* 6. HAKKINDA & GİZLİLİK (ABOUT & SECURITY) */}
+          {activeSection === 'about' && (
+            <div className="p-6 sm:p-8 rounded-[2rem] bg-[#0E0F14] border border-white/[0.06] space-y-6 animate-in fade-in">
+              {/* Header Card with glowing gradient */}
+              <div className="relative overflow-hidden p-6 sm:p-7 rounded-3xl bg-gradient-to-br from-[#181824] via-[#0E0F14] to-[#0A0A0C] border border-[#E5B85C]/20 shadow-[0_10px_35px_rgba(0,0,0,0.5)]">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-[#E5B85C]/5 rounded-full blur-3xl pointer-events-none" />
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative z-10">
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#F3C969] via-[#E5B85C] to-[#B38728] p-0.5 shadow-[0_0_25px_rgba(229,184,92,0.3)] shrink-0">
+                      <div className="w-full h-full bg-[#0A0A0C] rounded-[14px] flex items-center justify-center">
+                        <Sparkles className="w-7 h-7 text-[#E5B85C]" />
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h2 className="text-lg sm:text-xl font-black tracking-tight text-white font-display">
+                          AURUM FINANCE
+                        </h2>
+                        <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-[#E5B85C]/15 border border-[#E5B85C]/30 text-[#F3C969]">
+                          v2.4.0 Titanium
+                        </span>
+                      </div>
+                      <p className="text-xs text-zinc-400 mt-1 max-w-xl">
+                        Kişisel varlık, bütçe, altın, döviz ve nakit akışınızı banka standartlarında takip etmeniz için sıfırdan tasarlanmış yüksek güvenlikli yeni nesil finans yönetim platformu.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="shrink-0 flex items-center gap-2">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-xs font-bold">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                      Supabase Cloud Aktif
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Güvenlik & Mimari Kartları */}
+              <div>
+                <div className="flex items-center justify-between mb-3.5">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-300 flex items-center gap-1.5">
+                    <ShieldCheck className="w-4 h-4 text-[#E5B85C]" />
+                    Güvenlik Mimarisi & Veri Koruma
+                  </h3>
+                  <span className="text-[11px] text-zinc-500">Banka standartlarında şifreleme</span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Supabase & RLS */}
+                  <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.06] hover:border-emerald-500/30 transition-all group">
+                    <div className="flex items-center gap-3 mb-2.5">
+                      <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:scale-105 transition-transform">
+                        <Server className="w-4.5 h-4.5" />
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-bold text-white">Supabase & Row Level Security (RLS)</h4>
+                        <span className="text-[10px] text-emerald-400/90 font-mono">İzole Veritabanı Mimarisi</span>
+                      </div>
+                    </div>
+                    <p className="text-xs text-zinc-400 leading-relaxed">
+                      Verileriniz Supabase PostgreSQL altyapısında barındırılır. Her bir tablo <strong>Row Level Security (RLS)</strong> ilkeleriyle korunur; sistemdeki hiçbir kullanıcı sizin yetkilendirilmiş JWT oturumunuz olmadan portföyünüze, gelir/giderlerinize veya varlıklarınıza asla erişemez.
+                    </p>
+                  </div>
+
+                  {/* Askeri Sınıf Şifreleme */}
+                  <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.06] hover:border-[#E5B85C]/30 transition-all group">
+                    <div className="flex items-center gap-3 mb-2.5">
+                      <div className="w-9 h-9 rounded-xl bg-[#E5B85C]/10 border border-[#E5B85C]/20 flex items-center justify-center text-[#E5B85C] group-hover:scale-105 transition-transform">
+                        <Lock className="w-4.5 h-4.5" />
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-bold text-white">AES-256 & TLS 1.3 Koruması</h4>
+                        <span className="text-[10px] text-[#F3C969]/90 font-mono">Banka Seviyesinde İletim & Depolama</span>
+                      </div>
+                    </div>
+                    <p className="text-xs text-zinc-400 leading-relaxed">
+                      Cihazınız ile sunucular arasındaki tüm veri akışı <strong>TLS 1.3</strong> protokolü ile şifrelenir. Disk üzerindeki veriler ve veritabanı yedekleri <strong>AES-256</strong> askeri sınıf şifreleme algoritmalarıyla kilit altında tutulur.
+                    </p>
+                  </div>
+
+                  {/* Sıfır Bilgi Güvenliği */}
+                  <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.06] hover:border-sky-500/30 transition-all group">
+                    <div className="flex items-center gap-3 mb-2.5">
+                      <div className="w-9 h-9 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 group-hover:scale-105 transition-transform">
+                        <KeyRound className="w-4.5 h-4.5" />
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-bold text-white">Sıfır Bilgi (Zero-Knowledge) Parola Prensibi</h4>
+                        <span className="text-[10px] text-sky-400/90 font-mono">Tek Yönlü Kriptografik Özetleme</span>
+                      </div>
+                    </div>
+                    <p className="text-xs text-zinc-400 leading-relaxed">
+                      Parolalarınız sunucuda asla düz metin (plain-text) olarak saklanmaz. Güçlü tek yönlü özetleme fonksiyonlarıyla hash'lenir. Aurum geliştiricileri dahil olmak üzere hiç kimse parolanızı veya şifrelenmiş hassas kayıtlarınızı görüntüleyemez.
+                    </p>
+                  </div>
+
+                  {/* Sıfır İzleyici & Reklamsız İlkeler */}
+                  <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.06] hover:border-rose-500/30 transition-all group">
+                    <div className="flex items-center gap-3 mb-2.5">
+                      <div className="w-9 h-9 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 group-hover:scale-105 transition-transform">
+                        <Shield className="w-4.5 h-4.5" />
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-bold text-white">Sıfır İzleyici & Gizlilik Politikası</h4>
+                        <span className="text-[10px] text-rose-400/90 font-mono">Reklamsız · Takipsiz · Şeffaf</span>
+                      </div>
+                    </div>
+                    <p className="text-xs text-zinc-400 leading-relaxed">
+                      Aurum uygulamasında Google Analytics, Facebook Pixel veya üçüncü taraf reklam/izleme çerezleri kesinlikle bulunmaz. Finansal verileriniz asla ticari amaçla satılmaz veya üçüncü partilere aktarılmaz.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Veri Egemenliği & Haklarınız */}
+              <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.06] space-y-3">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-300 flex items-center gap-1.5">
+                  <Database className="w-4 h-4 text-[#E5B85C]" />
+                  Veri Egemenliği ve Kullanıcı Hakları
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                  <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.04]">
+                    <span className="text-xs font-bold text-white block">Tam Veri Sahipliği</span>
+                    <span className="text-[11px] text-zinc-400 mt-1 block">
+                      Girdiğiniz tüm nakit akışı, altın ve döviz kayıtları %100 size aittir.
+                    </span>
+                  </div>
+                  <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.04]">
+                    <span className="text-xs font-bold text-white block">Anında Dışa Aktarma</span>
+                    <span className="text-[11px] text-zinc-400 mt-1 block">
+                      Verilerinizi dilediğiniz an JSON veya CSV formatında tek tıkla cihazınıza indirebilirsiniz.
+                    </span>
+                  </div>
+                  <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.04]">
+                    <span className="text-xs font-bold text-white block">Unutulma Hakkı</span>
+                    <span className="text-[11px] text-zinc-400 mt-1 block">
+                      Hesabınızı sildiğinizde tüm verileriniz sunuculardan kalıcı ve geri dönülemez olarak yok edilir.
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Proje & Geliştirici Bilgisi */}
+              <div className="pt-4 border-t border-white/[0.06] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-zinc-400">
+                <div>
+                  <span className="text-zinc-300 font-semibold">Geliştirici & Mimari:</span> Melih KOÇHAN
+                </div>
+                <div className="text-[11px] text-zinc-500">
+                  © 2026 Aurum Finance Inc. Tüm hakları saklıdır.
+                </div>
+              </div>
+            </div>
+          )}
+
         </div>
       </div>
 
@@ -700,70 +927,181 @@ export const SettingsView: React.FC = () => {
         isDestructive={true}
       />
 
-      {/* Password Change Mock Modal */}
+      {/* Modern Password Change Modal */}
       {isPasswordModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in">
-          <div className="w-full max-w-md rounded-3xl bg-[#0E0F14] border border-white/[0.08] p-6 sm:p-8 space-y-5">
-            <h3 className="text-base font-bold text-white flex items-center gap-2">
-              <KeyRound className="w-4 h-4 text-[#E5B85C]" />
-              <span>Şifre Değiştir</span>
-            </h3>
+          <div className="w-full max-w-md rounded-3xl bg-[#0E0F14] border border-white/[0.1] p-6 sm:p-8 space-y-5 shadow-[0_25px_70px_rgba(0,0,0,0.8)] relative overflow-hidden">
+            {/* Top gold accent line */}
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#E5B85C] to-transparent opacity-70" />
 
-            <div className="space-y-3">
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-zinc-300 block">Mevcut Şifre</label>
-                <input
-                  type="password"
-                  value={oldPassword}
-                  onChange={(e) => setOldPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full px-4 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.08] text-sm text-white focus:outline-none"
-                />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-[#E5B85C]/10 border border-[#E5B85C]/20 flex items-center justify-center text-[#E5B85C]">
+                  <KeyRound className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-white">Şifreyi Değiştir</h3>
+                  <p className="text-[11px] text-zinc-400">Hesabınız için yeni ve güçlü bir parola belirleyin</p>
+                </div>
               </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-zinc-300 block">Yeni Şifre</label>
-                <input
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="En az 8 karakter"
-                  className="w-full px-4 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.08] text-sm text-white focus:outline-none"
-                />
-              </div>
-            </div>
-
-            {passwordSuccess && (
-              <span className="text-xs text-emerald-400 font-bold block">
-                ✓ Şifreniz başarıyla güncellendi!
-              </span>
-            )}
-
-            <div className="flex items-center justify-end gap-2 pt-2">
               <button
                 type="button"
-                onClick={() => {
-                  setIsPasswordModalOpen(false);
-                  setPasswordSuccess(false);
-                }}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-zinc-400 hover:text-white"
+                onClick={handleClosePasswordModal}
+                className="w-8 h-8 rounded-full bg-white/[0.04] hover:bg-white/[0.1] text-zinc-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer text-sm"
               >
-                Kapat
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setPasswordSuccess(true);
-                  setTimeout(() => {
-                    setIsPasswordModalOpen(false);
-                    setPasswordSuccess(false);
-                  }, 1500);
-                }}
-                className="px-5 py-2 rounded-xl bg-[#E5B85C] hover:bg-[#F5C042] text-[#0A0A0C] text-xs font-bold transition-all cursor-pointer"
-              >
-                Güncelle
+                ✕
               </button>
             </div>
+
+            <form onSubmit={handleChangePassword} className="space-y-4">
+              {/* Mevcut Şifre */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-zinc-300 block">Mevcut Şifre</label>
+                <div className="relative">
+                  <input
+                    type={showOldPassword ? 'text' : 'password'}
+                    required
+                    value={oldPassword}
+                    onChange={(e) => setOldPassword(e.target.value)}
+                    placeholder="Mevcut parolanızı girin"
+                    className="w-full pl-4 pr-11 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.08] focus:border-[#E5B85C]/60 text-sm text-white focus:outline-none transition-all placeholder:text-zinc-600"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowOldPassword(!showOldPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 p-1 transition-colors cursor-pointer"
+                  >
+                    {showOldPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Yeni Şifre */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-zinc-300 block">Yeni Şifre</label>
+                  {newPassword && (
+                    <span className={`text-[10px] font-bold ${getPasswordStrength(newPassword).color}`}>
+                      {getPasswordStrength(newPassword).label}
+                    </span>
+                  )}
+                </div>
+                <div className="relative">
+                  <input
+                    type={showNewPassword ? 'text' : 'password'}
+                    required
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="En az 8 karakter"
+                    className="w-full pl-4 pr-11 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.08] focus:border-[#E5B85C]/60 text-sm text-white focus:outline-none transition-all placeholder:text-zinc-600"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 p-1 transition-colors cursor-pointer"
+                  >
+                    {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+
+                {/* Strength Meter Bar */}
+                {newPassword && (
+                  <div className="flex items-center gap-1.5 pt-1">
+                    <div className={`h-1 flex-1 rounded-full transition-all duration-300 ${
+                      getPasswordStrength(newPassword).score >= 1 ? 'bg-rose-500' : 'bg-white/10'
+                    }`} />
+                    <div className={`h-1 flex-1 rounded-full transition-all duration-300 ${
+                      getPasswordStrength(newPassword).score >= 2 ? 'bg-amber-500' : 'bg-white/10'
+                    }`} />
+                    <div className={`h-1 flex-1 rounded-full transition-all duration-300 ${
+                      getPasswordStrength(newPassword).score >= 3 ? 'bg-emerald-500' : 'bg-white/10'
+                    }`} />
+                  </div>
+                )}
+              </div>
+
+              {/* Yeni Şifreyi Onayla */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-zinc-300 block">Yeni Şifreyi Onayla</label>
+                  {confirmPassword && (
+                    confirmPassword === newPassword ? (
+                      <span className="text-[10px] text-emerald-400 font-bold flex items-center gap-1">
+                        <CheckCircle2 className="w-3 h-3" /> Eşleşti
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-rose-400 font-bold flex items-center gap-1">
+                        <AlertCircle className="w-3 h-3" /> Eşleşmiyor
+                      </span>
+                    )
+                  )}
+                </div>
+                <div className="relative">
+                  <input
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    required
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Yeni parolanızı tekrar girin"
+                    className={`w-full pl-4 pr-11 py-2.5 rounded-xl bg-white/[0.03] border text-sm text-white focus:outline-none transition-all placeholder:text-zinc-600 ${
+                      confirmPassword
+                        ? confirmPassword === newPassword
+                          ? 'border-emerald-500/50 focus:border-emerald-500'
+                          : 'border-rose-500/50 focus:border-rose-500'
+                        : 'border-white/[0.08] focus:border-[#E5B85C]/60'
+                    }`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 p-1 transition-colors cursor-pointer"
+                  >
+                    {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Error Message */}
+              {passwordError && (
+                <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{passwordError}</span>
+                </div>
+              )}
+
+              {/* Success Message */}
+              {passwordSuccess && (
+                <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold flex items-center gap-2 animate-in fade-in">
+                  <CheckCircle2 className="w-4 h-4 shrink-0" />
+                  <span>Şifreniz başarıyla güncellendi!</span>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-white/[0.06]">
+                <button
+                  type="button"
+                  onClick={handleClosePasswordModal}
+                  className="px-4 py-2.5 rounded-xl text-xs font-semibold text-zinc-400 hover:text-white hover:bg-white/[0.05] transition-colors cursor-pointer"
+                >
+                  Vazgeç
+                </button>
+                <button
+                  type="submit"
+                  disabled={isChangingPassword || passwordSuccess || (confirmPassword !== '' && confirmPassword !== newPassword)}
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#F3C969] via-[#E5B85C] to-[#D6A84F] text-[#0A0A0C] text-xs font-extrabold shadow-[0_4px_16px_rgba(229,184,92,0.3)] hover:brightness-110 active:scale-95 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  {isChangingPassword ? (
+                    <>
+                      <div className="w-3.5 h-3.5 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                      <span>Güncelleniyor...</span>
+                    </>
+                  ) : (
+                    <span>Şifreyi Güncelle</span>
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
