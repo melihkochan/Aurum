@@ -19,7 +19,8 @@ import {
   AlertCircle,
   ShieldCheck,
   Sparkles,
-  Server
+  Server,
+  ExternalLink
 } from 'lucide-react';
 import { usePortfolio } from '../../context/PortfolioContext';
 import { useAuth } from '../../context/AuthContext';
@@ -917,8 +918,19 @@ export const SettingsView: React.FC = () => {
 
               {/* Proje & Geliştirici Bilgisi */}
               <div className="pt-4 border-t border-white/[0.06] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-zinc-400">
-                <div>
-                  <span className="text-zinc-300 font-semibold">Geliştirici & Mimari:</span> Melih KOÇHAN
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-zinc-300 font-semibold">Geliştirici & Mimari:</span>
+                  <span className="text-white font-medium">Melih KOÇHAN</span>
+                  <span className="text-zinc-600">·</span>
+                  <a
+                    href="https://www.melihkochan.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[#E5B85C] hover:text-[#F3C969] hover:underline inline-flex items-center gap-1 font-medium transition-colors"
+                  >
+                    <span>www.melihkochan.com</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
                 </div>
                 <div className="text-[11px] text-zinc-500">
                   © 2026 Aurum Finance Inc. Tüm hakları saklıdır.
