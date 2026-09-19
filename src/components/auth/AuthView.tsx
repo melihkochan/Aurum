@@ -385,10 +385,17 @@ export const AuthView: React.FC<AuthViewProps> = ({
           {/* TAB 1: LOGIN FORM */}
           {activeTab === 'login' && (
             <div className="space-y-5 animate-in fade-in duration-200">
-              <div className="space-y-1">
-                <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
-                  {lastUserName ? 'Tekrar Hoş Geldiniz' : 'Hoş Geldiniz'}
-                </h2>
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between gap-3">
+                  <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+                    {lastUserName ? 'Tekrar Hoş Geldiniz' : 'Hoş Geldiniz'}
+                  </h2>
+                  {lastUserName && (
+                    <span className="text-[11px] px-2.5 py-1 rounded-full bg-[#E5B85C]/10 border border-[#E5B85C]/25 text-[#F5C042] font-mono font-bold tracking-tight shrink-0 shadow-sm">
+                      {lastUsername ? `@${lastUsername.replace(/^@/, '')}` : `@${lastUserName.toLowerCase().replace(/\s+/g, '_')}`}
+                    </span>
+                  )}
+                </div>
                 <p className="text-xs text-zinc-400">
                   {lastUserName ? (
                     <>
@@ -400,16 +407,6 @@ export const AuthView: React.FC<AuthViewProps> = ({
                     'Kişisel kasanıza ve portföyünüze erişmek için giriş yapın.'
                   )}
                 </p>
-                {lastUserName && (
-                  <div className="pt-1 flex items-center gap-2">
-                    <span className="text-[11px] text-zinc-500">
-                      Son oturum:
-                    </span>
-                    <span className="text-[11px] px-2 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.08] text-[#E5B85C] font-mono font-bold">
-                      {lastUsername ? `@${lastUsername.replace(/^@/, '')}` : `@${lastUserName.toLowerCase().replace(/\s+/g, '_')}`}
-                    </span>
-                  </div>
-                )}
               </div>
 
 
