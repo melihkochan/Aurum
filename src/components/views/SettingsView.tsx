@@ -148,6 +148,8 @@ export const SettingsView: React.FC = () => {
 
   // Modals & Security
   const [isDeleteAccountOpen, setIsDeleteAccountOpen] = useState(false);
+  const [confirmDemoOpen, setConfirmDemoOpen] = useState(false);
+  const [confirmResetOpen, setConfirmResetOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -698,11 +700,7 @@ export const SettingsView: React.FC = () => {
                 {/* Reset to Demo */}
                 <button
                   type="button"
-                  onClick={() => {
-                    if (confirm('Varsayılan demo portföy verileri yüklensin mi? Mevcut kayıtlar sıfırlanacaktır.')) {
-                      resetToDemo();
-                    }
-                  }}
+                  onClick={() => setConfirmDemoOpen(true)}
                   className="p-4 rounded-2xl bg-white/[0.025] hover:bg-white/[0.05] border border-white/[0.06] flex items-center gap-3.5 transition-all text-left cursor-pointer group"
                 >
                   <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shrink-0">
@@ -721,11 +719,7 @@ export const SettingsView: React.FC = () => {
                 {/* Clear Portfolio */}
                 <button
                   type="button"
-                  onClick={() => {
-                    if (confirm('Tüm portföy ve işlem kayıtları silinsin mi?')) {
-                      clearPortfolio();
-                    }
-                  }}
+                  onClick={() => setConfirmResetOpen(true)}
                   className="p-4 rounded-2xl bg-rose-500/[0.03] hover:bg-rose-500/[0.08] border border-rose-500/20 flex items-center gap-3.5 transition-all text-left cursor-pointer group"
                 >
                   <div className="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 shrink-0">
@@ -1248,6 +1242,53 @@ export const SettingsView: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Confirm Demo Data Dialog */}
+      <ConfirmDialog
+        isOpen={confirmDemoOpen}
+        title="Demo Verilerini Yükle"
+        message="Varsayılan zengin demo portföy verileri yüklensin mi? Mevcut kayıtlarınız sıfırlanacaktır."
+        confirmText="Demo Verilerini Yükle"
+        cancelText="Vazgeç"
+        confirmVariant="gold"
+        onConfirm={() => {
+          resetToDemo();
+          setConfirmDemoOpen(false);
+        }}
+        onClose={() => setConfirmDemoOpen(false)}
+      />
+
+      {/* Confirm Clear Portfolio Dialog */}
+      <ConfirmDialog
+        isOpen={confirmResetOpen}
+        title="Portföyü Sıfırla"
+        message="Tüm portföy, birikim ve işlem kayıtlarınız kalıcı olarak silinsin mi? Bu işlem geri alınamaz."
+        confirmText="Portföyü Sıfırla"
+        cancelText="Vazgeç"
+        isDestructive={true}
+        confirmVariant="danger"
+        onConfirm={() => {
+          clearPortfolio();
+          setConfirmResetOpen(false);
+        }}
+        onClose={() => setConfirmResetOpen(false)}
+      />
+
+      {/* Confirm Delete Account Dialog */}
+      <ConfirmDialog
+        isOpen={isDeleteAccountOpen}
+        title="Hesabımı Sil"
+        message="Hesabınız ve tüm finansal verileriniz kalıcı olarak silinecektir. Bu işlem geri alınamaz."
+        confirmText="Hesabımı ve Verilerimi Sil"
+        cancelText="Vazgeç"
+        isDestructive={true}
+        confirmVariant="danger"
+        onConfirm={() => {
+          setIsDeleteAccountOpen(false);
+          handleDeleteAccount();
+        }}
+        onClose={() => setIsDeleteAccountOpen(false)}
+      />
 
     </div>
   );

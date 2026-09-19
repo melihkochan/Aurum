@@ -47,8 +47,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
           <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <div className="space-y-3 max-w-2xl">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E5B85C]/15 border border-[#E5B85C]/30 text-[#F5C042] text-xs font-black tracking-wider uppercase">
-                <Sparkles className="w-3.5 h-3.5 text-[#E5B85C]" />
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E5B85C]/15 border border-[#E5B85C]/30 text-[#F5C042] text-[11px] font-black tracking-wider uppercase">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#E5B85C]" />
                 <span>AURUM VAULT'A HOŞ GELDİNİZ</span>
               </div>
               <h2 className="font-display text-2xl sm:text-3xl font-black text-white tracking-tight">
@@ -57,28 +57,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <p className="text-sm text-zinc-300 leading-relaxed">
                 Kişisel finans kasanız hazır. Yatırımlarınızı, altınlarınızı, dövizlerinizi ve birikimlerinizi anlık piyasa fiyatlarıyla canlı takip etmeye başlamak için hemen ilk varlığınızı ekleyin.
               </p>
-
-              {/* Quick asset tags */}
-              <div className="flex flex-wrap items-center gap-2 pt-1">
-                <span className="text-xs text-zinc-400 font-semibold mr-1">Hızlı Ekle:</span>
-                {[
-                  { key: 'gramGold', label: 'Gram Altın', icon: '🪙' },
-                  { key: 'ceyrekGold', label: 'Çeyrek Altın', icon: '🎖️' },
-                  { key: 'usd', label: 'Amerikan Doları', icon: '💵' },
-                  { key: 'eur', label: 'Euro', icon: '💶' },
-                  { key: 'cash', label: 'Nakit TL', icon: '🏦' },
-                ].map((item) => (
-                  <button
-                    key={item.key}
-                    type="button"
-                    onClick={() => onOpenAddModal(item.key)}
-                    className="px-3 py-1.5 rounded-xl bg-white/[0.04] hover:bg-[#E5B85C]/15 border border-white/[0.08] hover:border-[#E5B85C]/40 text-xs font-semibold text-zinc-200 hover:text-[#F5D07A] transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
-                  >
-                    <span>{item.icon}</span>
-                    <span>{item.label}</span>
-                  </button>
-                ))}
-              </div>
             </div>
 
             {/* Main Action Button */}
