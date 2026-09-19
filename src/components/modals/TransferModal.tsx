@@ -186,29 +186,65 @@ export const TransferModal: React.FC<TransferModalProps> = ({ isOpen, onClose })
           {/* Tarih & Saat */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5 text-zinc-400" />
-                Tarih
-              </label>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-xs font-semibold text-zinc-300 uppercase tracking-wider flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5 text-sky-400" />
+                  Tarih
+                </label>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setDate(new Date().toISOString().split('T')[0])}
+                    className="text-[10px] px-2 py-0.5 rounded-md bg-white/[0.04] hover:bg-sky-500/20 text-zinc-400 hover:text-sky-300 transition-colors cursor-pointer"
+                  >
+                    Bugün
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const d = new Date();
+                      d.setDate(d.getDate() - 1);
+                      setDate(d.toISOString().split('T')[0]);
+                    }}
+                    className="text-[10px] px-2 py-0.5 rounded-md bg-white/[0.04] hover:bg-sky-500/20 text-zinc-400 hover:text-sky-300 transition-colors cursor-pointer"
+                  >
+                    Dün
+                  </button>
+                </div>
+              </div>
               <input
                 type="date"
                 required
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.08] focus:border-sky-500/60 text-sm text-white focus:outline-none transition-all [color-scheme:dark]"
+                onClick={(e) => e.currentTarget.showPicker?.()}
+                className="w-full px-4 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.08] focus:border-sky-500/60 text-sm text-white focus:outline-none transition-all [color-scheme:dark] cursor-pointer"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5 text-zinc-400" />
-                Saat
-              </label>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-xs font-semibold text-zinc-300 uppercase tracking-wider flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-sky-400" />
+                  Saat
+                </label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const now = new Date();
+                    setTime(`${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`);
+                  }}
+                  className="text-[10px] px-2 py-0.5 rounded-md bg-white/[0.04] hover:bg-sky-500/20 text-zinc-400 hover:text-sky-300 transition-colors cursor-pointer"
+                >
+                  Şimdi
+                </button>
+              </div>
               <input
                 type="time"
                 value={time}
                 onChange={(e) => setTime(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.08] focus:border-sky-500/60 text-sm text-white focus:outline-none transition-all [color-scheme:dark]"
+                onClick={(e) => e.currentTarget.showPicker?.()}
+                className="w-full px-4 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.08] focus:border-sky-500/60 text-sm text-white focus:outline-none transition-all [color-scheme:dark] cursor-pointer"
               />
             </div>
           </div>

@@ -477,6 +477,7 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
                       required
                       value={newTxDate}
                       onChange={(e) => setNewTxDate(e.target.value)}
+                      onClick={(e) => e.currentTarget.showPicker?.()}
                       className="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-1.5 text-xs text-white font-bold focus:border-[#E5B85C] focus:outline-none cursor-pointer [color-scheme:dark]"
                     />
                   </div>
@@ -499,6 +500,7 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
                       type="time"
                       value={newTxTime}
                       onChange={(e) => setNewTxTime(e.target.value)}
+                      onClick={(e) => e.currentTarget.showPicker?.()}
                       className="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-1.5 text-xs text-white font-bold focus:border-[#E5B85C] focus:outline-none cursor-pointer [color-scheme:dark] tabular-nums"
                     />
                   </div>
@@ -633,6 +635,7 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
                                 required
                                 value={editTxDate}
                                 onChange={(e) => setEditTxDate(e.target.value)}
+                                onClick={(e) => e.currentTarget.showPicker?.()}
                                 className="w-full bg-black/60 border border-[#E5B85C]/40 rounded-xl px-3 py-1.5 text-xs text-white font-bold focus:border-[#E5B85C] focus:outline-none cursor-pointer [color-scheme:dark]"
                               />
                             </div>
@@ -654,6 +657,7 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
                                 type="time"
                                 value={editTxTime}
                                 onChange={(e) => setEditTxTime(e.target.value)}
+                                onClick={(e) => e.currentTarget.showPicker?.()}
                                 className="w-full bg-black/60 border border-[#E5B85C]/40 rounded-xl px-3 py-1.5 text-xs text-white font-bold focus:border-[#E5B85C] focus:outline-none cursor-pointer [color-scheme:dark] tabular-nums"
                               />
                             </div>

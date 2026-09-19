@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { X, Repeat, ArrowDownLeft, ArrowUpRight, Calendar, Landmark, Layers } from 'lucide-react';
 import { usePortfolio } from '../../context/PortfolioContext';
 import { formatCurrencyInput, parseCurrencyInput } from '../../utils/formatters';
+import { GoldSwitch } from '../ui/GoldSwitch';
 
 interface AddRecurringModalProps {
   isOpen: boolean;
@@ -251,46 +252,51 @@ export const AddRecurringModal: React.FC<AddRecurringModalProps> = ({
 
           {/* Taksit Seçeneği (Sadece Giderde) */}
           {type === 'expense' && (
-            <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.06] space-y-3">
+            <div className={`p-4 rounded-2xl border transition-all space-y-3 ${
+              isInstallment
+                ? 'bg-gradient-to-r from-amber-500/10 to-[#E5B85C]/10 border-[#E5B85C]/30 shadow-[0_4px_20px_rgba(229,184,92,0.08)]'
+                : 'bg-white/[0.02] border-white/[0.06] hover:bg-white/[0.03]'
+            }`}>
               <div
-                className="flex items-center gap-3 cursor-pointer select-none"
+                className="flex items-center justify-between cursor-pointer select-none"
                 onClick={() => setIsInstallment(!isInstallment)}
               >
-                <input
-                  type="checkbox"
-                  id="installment-checkbox"
-                  checked={isInstallment}
-                  onChange={(e) => setIsInstallment(e.target.checked)}
-                  className="w-4 h-4 rounded text-[#E5B85C] bg-white/10 border-white/20 focus:ring-[#E5B85C] focus:ring-offset-0 cursor-pointer"
-                />
-                <label htmlFor="installment-checkbox" className="text-xs font-bold text-zinc-300 cursor-pointer flex items-center gap-1.5">
-                  <Layers className="w-3.5 h-3.5 text-[#E5B85C]" />
-                  Bu bir Taksitli Ödeme (Kredi Kartı / Kredi)
-                </label>
+                <div className="flex items-center gap-3">
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
+                    isInstallment ? 'bg-[#E5B85C]/20 text-[#E5B85C]' : 'bg-white/[0.05] text-zinc-400'
+                  }`}>
+                    <Layers className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-white">Taksitli Ödeme</p>
+                    <p className="text-[11px] text-zinc-400">Kredi Kartı veya Kredi taksitlerini takip edin</p>
+                  </div>
+                </div>
+                <GoldSwitch isSelected={isInstallment} onValueChange={setIsInstallment} />
               </div>
 
               {isInstallment && (
-                <div className="grid grid-cols-2 gap-3 pt-2">
+                <div className="grid grid-cols-2 gap-3 pt-2 border-t border-white/[0.06]">
                   <div>
-                    <label className="block text-[11px] text-zinc-400 mb-1">Toplam Taksit Sayısı</label>
+                    <label className="block text-[11px] font-semibold text-zinc-300 mb-1.5">Toplam Taksit Sayısı</label>
                     <input
                       type="number"
                       min={2}
                       max={120}
                       value={installmentTotal}
                       onChange={(e) => setInstallmentTotal(parseInt(e.target.value) || 2)}
-                      className="w-full px-3 py-2 rounded-xl bg-white/[0.03] border border-white/[0.08] text-xs text-white"
+                      className="w-full px-3 py-2 rounded-xl bg-white/[0.03] border border-white/[0.08] focus:border-[#E5B85C]/50 text-xs text-white focus:outline-none transition-colors"
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] text-zinc-400 mb-1">Kalan Taksit Sayısı</label>
+                    <label className="block text-[11px] font-semibold text-zinc-300 mb-1.5">Kalan Taksit Sayısı</label>
                     <input
                       type="number"
                       min={1}
                       max={installmentTotal}
                       value={installmentRemaining}
                       onChange={(e) => setInstallmentRemaining(parseInt(e.target.value) || 1)}
-                      className="w-full px-3 py-2 rounded-xl bg-white/[0.03] border border-white/[0.08] text-xs text-white"
+                      className="w-full px-3 py-2 rounded-xl bg-white/[0.03] border border-white/[0.08] focus:border-[#E5B85C]/50 text-xs text-white focus:outline-none transition-colors"
                     />
                   </div>
                 </div>

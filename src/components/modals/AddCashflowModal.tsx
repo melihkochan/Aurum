@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, ArrowDownLeft, ArrowUpRight, Check } from 'lucide-react';
+import { X, ArrowDownLeft, ArrowUpRight, Check, Calendar } from 'lucide-react';
 import { usePortfolio } from '../../context/PortfolioContext';
 import type { CashflowCategory } from '../../services/portfolio/types';
 import { formatCurrencyInput, parseCurrencyInput } from '../../utils/formatters';
@@ -181,14 +181,38 @@ export const AddCashflowModal: React.FC<AddCashflowModalProps> = ({
 
           {/* Date */}
           <div>
-            <label className="text-xs font-semibold text-zinc-300 block mb-2">
-              Tarih
-            </label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-xs font-semibold text-zinc-300 flex items-center gap-1.5">
+                <Calendar className="w-3.5 h-3.5 text-[#E5B85C]" />
+                Tarih
+              </label>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => setDate(new Date().toISOString().split('T')[0])}
+                  className="text-[10px] px-2 py-0.5 rounded-md bg-white/[0.04] hover:bg-[#E5B85C]/20 text-zinc-400 hover:text-[#F3C969] transition-colors cursor-pointer"
+                >
+                  Bugün
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const d = new Date();
+                    d.setDate(d.getDate() - 1);
+                    setDate(d.toISOString().split('T')[0]);
+                  }}
+                  className="text-[10px] px-2 py-0.5 rounded-md bg-white/[0.04] hover:bg-[#E5B85C]/20 text-zinc-400 hover:text-[#F3C969] transition-colors cursor-pointer"
+                >
+                  Dün
+                </button>
+              </div>
+            </div>
             <input
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="w-full px-4 py-3.5 rounded-2xl bg-white/[0.04] border border-white/10 focus:border-[#E5B85C]/60 text-sm text-white focus:outline-none transition-all [color-scheme:dark]"
+              onClick={(e) => e.currentTarget.showPicker?.()}
+              className="w-full px-4 py-3.5 rounded-2xl bg-white/[0.04] border border-white/10 focus:border-[#E5B85C]/60 text-sm text-white focus:outline-none transition-all [color-scheme:dark] cursor-pointer"
             />
           </div>
 

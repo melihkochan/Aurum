@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { X, ArrowUpRight, Calendar, Clock, Landmark, Repeat } from 'lucide-react';
 import { usePortfolio } from '../../context/PortfolioContext';
 import { formatCurrencyInput, parseCurrencyInput } from '../../utils/formatters';
+import { GoldSwitch } from '../ui/GoldSwitch';
 
 interface AddExpenseModalProps {
   isOpen: boolean;
@@ -181,29 +182,65 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClos
           {/* Tarih & Saat */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5 text-zinc-400" />
-                Tarih
-              </label>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-xs font-semibold text-zinc-300 uppercase tracking-wider flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5 text-rose-400" />
+                  Tarih
+                </label>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setDate(new Date().toISOString().split('T')[0])}
+                    className="text-[10px] px-2 py-0.5 rounded-md bg-white/[0.04] hover:bg-rose-500/20 text-zinc-400 hover:text-rose-300 transition-colors cursor-pointer"
+                  >
+                    Bugün
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const d = new Date();
+                      d.setDate(d.getDate() - 1);
+                      setDate(d.toISOString().split('T')[0]);
+                    }}
+                    className="text-[10px] px-2 py-0.5 rounded-md bg-white/[0.04] hover:bg-rose-500/20 text-zinc-400 hover:text-rose-300 transition-colors cursor-pointer"
+                  >
+                    Dün
+                  </button>
+                </div>
+              </div>
               <input
                 type="date"
                 required
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.08] focus:border-rose-500/60 text-sm text-white focus:outline-none transition-all [color-scheme:dark]"
+                onClick={(e) => e.currentTarget.showPicker?.()}
+                className="w-full px-4 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.08] focus:border-rose-500/60 text-sm text-white focus:outline-none transition-all [color-scheme:dark] cursor-pointer"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5 text-zinc-400" />
-                Saat
-              </label>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-xs font-semibold text-zinc-300 uppercase tracking-wider flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-rose-400" />
+                  Saat
+                </label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const now = new Date();
+                    setTime(`${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`);
+                  }}
+                  className="text-[10px] px-2 py-0.5 rounded-md bg-white/[0.04] hover:bg-rose-500/20 text-zinc-400 hover:text-rose-300 transition-colors cursor-pointer"
+                >
+                  Şimdi
+                </button>
+              </div>
               <input
                 type="time"
                 value={time}
                 onChange={(e) => setTime(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.08] focus:border-rose-500/60 text-sm text-white focus:outline-none transition-all [color-scheme:dark]"
+                onClick={(e) => e.currentTarget.showPicker?.()}
+                className="w-full px-4 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.08] focus:border-rose-500/60 text-sm text-white focus:outline-none transition-all [color-scheme:dark] cursor-pointer"
               />
             </div>
           </div>
@@ -241,22 +278,27 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ isOpen, onClos
             />
           </div>
 
-          {/* Tekrarlama Onayı */}
+          {/* Tekrarlama Onayı - Modern Interactive Card with GoldSwitch */}
           <div
-            className="p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.06] flex items-center gap-3 cursor-pointer select-none"
             onClick={() => setIsRecurring(!isRecurring)}
+            className={`p-3.5 rounded-xl border transition-all cursor-pointer select-none flex items-center justify-between ${
+              isRecurring
+                ? 'bg-gradient-to-r from-rose-500/10 to-amber-500/10 border-rose-500/30 shadow-[0_4px_20px_rgba(244,63,94,0.12)]'
+                : 'bg-white/[0.02] border-white/[0.06] hover:bg-white/[0.04] hover:border-white/[0.1]'
+            }`}
           >
-            <input
-              type="checkbox"
-              id="rec-expense-checkbox"
-              checked={isRecurring}
-              onChange={(e) => setIsRecurring(e.target.checked)}
-              className="w-4 h-4 rounded text-rose-500 bg-white/10 border-white/20 focus:ring-rose-500 focus:ring-offset-0 cursor-pointer"
-            />
-            <label htmlFor="rec-expense-checkbox" className="text-xs text-zinc-300 font-medium cursor-pointer flex items-center gap-1.5">
-              <Repeat className="w-3.5 h-3.5 text-rose-400" />
-              Bu gider düzenli olarak her ay tekrar ediyor (Sabit Gider Olarak Kaydet)
-            </label>
+            <div className="flex items-center gap-3">
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
+                isRecurring ? 'bg-rose-500/20 text-rose-400' : 'bg-white/[0.05] text-zinc-400'
+              }`}>
+                <Repeat className="w-4 h-4" />
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-white">Sabit Gider Olarak Kaydet</p>
+                <p className="text-[11px] text-zinc-400">Bu gider düzenli olarak her ay otomatik tekrar eder</p>
+              </div>
+            </div>
+            <GoldSwitch isSelected={isRecurring} onValueChange={setIsRecurring} />
           </div>
 
           {/* Footer Buttons */}

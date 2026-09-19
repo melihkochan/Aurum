@@ -233,32 +233,98 @@ export const NoteEditorModal: React.FC<NoteEditorModalProps> = ({
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider block mb-2">
-                  Bitiş Tarihi (İsteğe Bağlı)
-                </label>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5 text-[#E5B85C]" />
+                    Bitiş Tarihi (İsteğe Bağlı)
+                  </label>
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => setDueDate(new Date().toISOString().split('T')[0])}
+                      className="text-[10px] px-2 py-0.5 rounded-md bg-white/[0.04] hover:bg-[#E5B85C]/20 text-zinc-400 hover:text-[#F3C969] transition-colors cursor-pointer"
+                    >
+                      Bugün
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const d = new Date();
+                        d.setDate(d.getDate() + 1);
+                        setDueDate(d.toISOString().split('T')[0]);
+                      }}
+                      className="text-[10px] px-2 py-0.5 rounded-md bg-white/[0.04] hover:bg-[#E5B85C]/20 text-zinc-400 hover:text-[#F3C969] transition-colors cursor-pointer"
+                    >
+                      Yarın
+                    </button>
+                    {dueDate && (
+                      <button
+                        type="button"
+                        onClick={() => setDueDate('')}
+                        className="text-[10px] px-2 py-0.5 rounded-md bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 transition-colors cursor-pointer"
+                      >
+                        Temizle
+                      </button>
+                    )}
+                  </div>
+                </div>
                 <div className="relative">
-                  <Calendar className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
+                  <Calendar className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#E5B85C] pointer-events-none" />
                   <input
                     type="date"
                     value={dueDate}
                     onChange={(e) => setDueDate(e.target.value)}
-                    className="w-full pl-10 pr-3 py-2 rounded-xl bg-white/[0.03] border border-white/[0.08] focus:border-[#E5B85C]/50 text-xs text-white focus:outline-none transition-colors"
+                    onClick={(e) => e.currentTarget.showPicker?.()}
+                    className="w-full pl-10 pr-3 py-2 rounded-xl bg-white/[0.03] border border-white/[0.08] focus:border-[#E5B85C]/50 text-xs text-white focus:outline-none transition-colors [color-scheme:dark] cursor-pointer"
                   />
                 </div>
               </div>
             </div>
           ) : (
             <div>
-              <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider block mb-2">
-                Bitiş / Hedef Tarihi (İsteğe Bağlı)
-              </label>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5 text-[#E5B85C]" />
+                  Bitiş / Hedef Tarihi (İsteğe Bağlı)
+                </label>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setDueDate(new Date().toISOString().split('T')[0])}
+                    className="text-[10px] px-2 py-0.5 rounded-md bg-white/[0.04] hover:bg-[#E5B85C]/20 text-zinc-400 hover:text-[#F3C969] transition-colors cursor-pointer"
+                  >
+                    Bugün
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const d = new Date();
+                      d.setDate(d.getDate() + 7);
+                      setDueDate(d.toISOString().split('T')[0]);
+                    }}
+                    className="text-[10px] px-2 py-0.5 rounded-md bg-white/[0.04] hover:bg-[#E5B85C]/20 text-zinc-400 hover:text-[#F3C969] transition-colors cursor-pointer"
+                  >
+                    +1 Hafta
+                  </button>
+                  {dueDate && (
+                    <button
+                      type="button"
+                      onClick={() => setDueDate('')}
+                      className="text-[10px] px-2 py-0.5 rounded-md bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 transition-colors cursor-pointer"
+                    >
+                      Temizle
+                    </button>
+                  )}
+                </div>
+              </div>
               <div className="relative">
-                <Calendar className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
+                <Calendar className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#E5B85C] pointer-events-none" />
                 <input
                   type="date"
                   value={dueDate}
                   onChange={(e) => setDueDate(e.target.value)}
-                  className="w-full pl-10 pr-3 py-2 rounded-xl bg-white/[0.03] border border-white/[0.08] focus:border-[#E5B85C]/50 text-xs text-white focus:outline-none transition-colors"
+                  onClick={(e) => e.currentTarget.showPicker?.()}
+                  className="w-full pl-10 pr-3 py-2 rounded-xl bg-white/[0.03] border border-white/[0.08] focus:border-[#E5B85C]/50 text-xs text-white focus:outline-none transition-colors [color-scheme:dark] cursor-pointer"
                 />
               </div>
             </div>
