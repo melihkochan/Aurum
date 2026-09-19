@@ -42,6 +42,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, sbSession) => {
       if (sbSession?.user) {
         let profile = await SupabaseService.getProfile(sbSession.user.id);
+        const provider = (sbSession.user.app_metadata?.provider as any) || 'email';
+        const needsOnboarding = !profile || !profile.onboardingCompleted;
+
         if (!profile) {
           const rawName =
             sbSession.user.user_metadata?.full_name ||
@@ -58,11 +61,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             avatar: sbSession.user.user_metadata?.avatar_url || sbSession.user.user_metadata?.picture || 'beam-2',
             avatarType: sbSession.user.user_metadata?.avatar_url ? 'custom' : 'beam',
             avatarColor: 'orange',
-            authProvider: (sbSession.user.app_metadata?.provider as any) || 'email',
+            authProvider: provider,
             plan: 'AURUM Pro',
             currencyPreference: 'TRY',
+            onboardingCompleted: false,
             createdAt: sbSession.user.created_at,
           };
+        } else {
+          profile.authProvider = provider;
+        }
+
+        if (needsOnboarding) {
           setIsOnboardingOpen(true);
         }
 
@@ -74,6 +83,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(profile);
         setSession(appSession);
         localStorage.setItem('aurum_auth_session_v1', JSON.stringify(appSession));
+        if (profile?.fullName) {
+          const firstName = profile.fullName.trim().split(' ')[0];
+          if (firstName) localStorage.setItem('aurum_last_user_name', firstName);
+        } else if (profile?.username) {
+          localStorage.setItem('aurum_last_user_name', profile.username);
+        }
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
         setSession(null);
@@ -94,6 +109,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const result = await AuthService.login(credentials);
       setUser(result.user);
       setSession(result.session);
+      if (result.user?.fullName) {
+        const firstName = result.user.fullName.trim().split(' ')[0];
+        if (firstName) localStorage.setItem('aurum_last_user_name', firstName);
+      } else if (result.user?.username) {
+        localStorage.setItem('aurum_last_user_name', result.user.username);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -105,6 +126,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const result = await AuthService.loginAsDemo();
       setUser(result.user);
       setSession(result.session);
+      if (result.user?.fullName) {
+        const firstName = result.user.fullName.trim().split(' ')[0];
+        if (firstName) localStorage.setItem('aurum_last_user_name', firstName);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -116,6 +141,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const result = await AuthService.register(data);
       setUser(result.user);
       setSession(result.session);
+      if (result.user?.fullName) {
+        const firstName = result.user.fullName.trim().split(' ')[0];
+        if (firstName) localStorage.setItem('aurum_last_user_name', firstName);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -127,6 +156,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const updated = await AuthService.updateProfile(updates);
       setUser(updated);
       setSession(AuthService.getSession());
+      if (updated?.fullName) {
+        const firstName = updated.fullName.trim().split(' ')[0];
+        if (firstName) localStorage.setItem('aurum_last_user_name', firstName);
+      }
     } finally {
       setIsLoading(false);
     }

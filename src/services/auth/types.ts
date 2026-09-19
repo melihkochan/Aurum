@@ -14,6 +14,7 @@ export interface User {
   plan?: string;
   avatarUrl?: string;
   currencyPreference?: 'TRY' | 'USD' | 'EUR';
+  onboardingCompleted?: boolean;
   createdAt: string;
 }
 

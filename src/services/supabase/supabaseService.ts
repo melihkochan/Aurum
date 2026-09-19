@@ -37,8 +37,10 @@ export class SupabaseService {
         avatar: data.avatar || 'beam-2',
         avatarType: data.avatar_type || 'beam',
         avatarColor: data.avatar_color || 'orange',
+        authProvider: (data.auth_provider as any) || 'email',
         plan: data.plan || 'AURUM Pro',
         currencyPreference: data.currency_preference || 'TRY',
+        onboardingCompleted: Boolean(data.onboarding_completed),
         createdAt: data.created_at,
       };
     } catch (e) {
@@ -58,6 +60,7 @@ export class SupabaseService {
       if (updates.avatarType !== undefined) dbUpdates.avatar_type = updates.avatarType;
       if (updates.avatarColor !== undefined) dbUpdates.avatar_color = updates.avatarColor;
       if (updates.currencyPreference !== undefined) dbUpdates.currency_preference = updates.currencyPreference;
+      if (updates.authProvider !== undefined) dbUpdates.auth_provider = updates.authProvider;
       if (updates.onboardingCompleted !== undefined) dbUpdates.onboarding_completed = updates.onboardingCompleted;
 
       await supabase.from('user_profiles').update(dbUpdates).eq('id', userId);

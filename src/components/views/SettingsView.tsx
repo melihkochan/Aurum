@@ -20,7 +20,8 @@ import {
   ShieldCheck,
   Sparkles,
   Server,
-  ExternalLink
+  ExternalLink,
+  Loader2,
 } from 'lucide-react';
 import { usePortfolio } from '../../context/PortfolioContext';
 import { useAuth } from '../../context/AuthContext';
@@ -81,6 +82,7 @@ export const SettingsView: React.FC = () => {
   }, [marketPrices]);
 
   // Account editing states
+  const isOAuthUser = user?.authProvider === 'google' || user?.authProvider === 'apple';
   const [nameInput, setNameInput] = useState(user?.fullName || preferences.name || 'Melih KOÇHAN');
   const [usernameInput, setUsernameInput] = useState(user?.username || 'melih');
   const [emailInput, setEmailInput] = useState(user?.email || 'melih@aurum.app');
@@ -148,7 +150,7 @@ export const SettingsView: React.FC = () => {
     e.preventDefault();
     setPasswordError(null);
 
-    if (!oldPassword) {
+    if (!isOAuthUser && !oldPassword) {
       setPasswordError('Lütfen mevcut şifrenizi giriniz.');
       return;
     }
@@ -165,7 +167,7 @@ export const SettingsView: React.FC = () => {
 
     setIsChangingPassword(true);
     try {
-      await changePassword(oldPassword, newPassword);
+      await changePassword(isOAuthUser ? '' : oldPassword, newPassword);
       setPasswordSuccess(true);
       setTimeout(() => {
         handleClosePasswordModal();
@@ -724,17 +726,26 @@ export const SettingsView: React.FC = () => {
                 {/* 1. Password Change */}
                 <div className="p-4 sm:p-5 rounded-2xl bg-white/[0.025] border border-white/[0.06] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
-                    <span className="text-sm font-bold text-white block">Hesap Şifresi</span>
-                    <span className="text-xs text-zinc-400 mt-0.5 block">
-                      Hesap şifreniz güncel ve koruma altındadır
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-bold text-white block">Hesap Şifresi</span>
+                      {isOAuthUser && (
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-[#F5C042]">
+                          {user?.authProvider === 'apple' ? 'Apple ile Bağlı' : 'Google ile Bağlı'}
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-xs text-zinc-400 mt-0.5 block max-w-xl">
+                      {isOAuthUser
+                        ? `Hesabınıza ${user?.authProvider === 'apple' ? 'Apple' : 'Google'} üzerinden erişiyorsunuz. Dilerseniz e-posta ve şifrenizle de doğrudan oturum açabilmek için hesabınıza bir şifre belirleyebilirsiniz.`
+                        : 'Hesap şifreniz güncel ve koruma altındadır'}
                     </span>
                   </div>
                   <button
                     type="button"
                     onClick={() => setIsPasswordModalOpen(true)}
-                    className="px-4 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-xs font-bold text-zinc-200 hover:text-white transition-all cursor-pointer self-start sm:self-auto"
+                    className="px-4 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-xs font-bold text-zinc-200 hover:text-white transition-all cursor-pointer self-start sm:self-auto shrink-0"
                   >
-                    Şifreyi Değiştir
+                    {isOAuthUser ? 'Şifre Belirle' : 'Şifreyi Değiştir'}
                   </button>
                 </div>
 
@@ -1050,8 +1061,14 @@ export const SettingsView: React.FC = () => {
                   <KeyRound className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-white">Şifreyi Değiştir</h3>
-                  <p className="text-[11px] text-zinc-400">Hesabınız için yeni ve güçlü bir parola belirleyin</p>
+                  <h3 className="text-base font-bold text-white">
+                    {isOAuthUser ? 'Hesap Şifresi Belirle' : 'Şifreyi Değiştir'}
+                  </h3>
+                  <p className="text-[11px] text-zinc-400">
+                    {isOAuthUser
+                      ? 'E-posta adresinizle doğrudan giriş yapabilmek için bir parola belirleyin'
+                      : 'Hesabınız için yeni ve güçlü bir parola belirleyin'}
+                  </p>
                 </div>
               </div>
               <button
@@ -1064,27 +1081,29 @@ export const SettingsView: React.FC = () => {
             </div>
 
             <form onSubmit={handleChangePassword} className="space-y-4">
-              {/* Mevcut Şifre */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-zinc-300 block">Mevcut Şifre</label>
-                <div className="relative">
-                  <input
-                    type={showOldPassword ? 'text' : 'password'}
-                    required
-                    value={oldPassword}
-                    onChange={(e) => setOldPassword(e.target.value)}
-                    placeholder="Mevcut parolanızı girin"
-                    className="w-full pl-4 pr-11 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.08] focus:border-[#E5B85C]/60 text-sm text-white focus:outline-none transition-all placeholder:text-zinc-600"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowOldPassword(!showOldPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 p-1 transition-colors cursor-pointer"
-                  >
-                    {showOldPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
+              {/* Mevcut Şifre (Sadece e-posta ile kayıtlı kullanıcılar için) */}
+              {!isOAuthUser && (
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-zinc-300 block">Mevcut Şifre</label>
+                  <div className="relative">
+                    <input
+                      type={showOldPassword ? 'text' : 'password'}
+                      required
+                      value={oldPassword}
+                      onChange={(e) => setOldPassword(e.target.value)}
+                      placeholder="Mevcut parolanızı girin"
+                      className="w-full pl-4 pr-11 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.08] focus:border-[#E5B85C]/60 text-sm text-white focus:outline-none transition-all placeholder:text-zinc-600"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowOldPassword(!showOldPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 p-1 transition-colors cursor-pointer"
+                    >
+                      {showOldPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Yeni Şifre */}
               <div className="space-y-1.5">
@@ -1189,7 +1208,11 @@ export const SettingsView: React.FC = () => {
               {passwordSuccess && (
                 <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold flex items-center gap-2 animate-in fade-in">
                   <CheckCircle2 className="w-4 h-4 shrink-0" />
-                  <span>Şifreniz başarıyla güncellendi!</span>
+                  <span>
+                    {isOAuthUser
+                      ? 'Hesap şifreniz başarıyla belirlendi! Artık e-posta ve şifrenizle de giriş yapabilirsiniz.'
+                      : 'Şifreniz başarıyla güncellendi!'}
+                  </span>
                 </div>
               )}
 
@@ -1209,11 +1232,11 @@ export const SettingsView: React.FC = () => {
                 >
                   {isChangingPassword ? (
                     <>
-                      <div className="w-3.5 h-3.5 border-2 border-black border-t-transparent rounded-full animate-spin" />
-                      <span>Güncelleniyor...</span>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Kaydediliyor...</span>
                     </>
                   ) : (
-                    <span>Şifreyi Güncelle</span>
+                    <span>{isOAuthUser ? 'Şifreyi Kaydet' : 'Şifreyi Güncelle'}</span>
                   )}
                 </button>
               </div>

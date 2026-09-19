@@ -346,7 +346,7 @@ export class AuthService {
       // Local fallback
       const users = this.getStoredUsers();
       const userAcc = users.find((u) => u.user.id === session.user.id);
-      if (userAcc && userAcc.passwordHash && userAcc.passwordHash !== currentPassword) {
+      if (userAcc && userAcc.passwordHash && currentPassword && userAcc.passwordHash !== currentPassword) {
         throw new Error('Mevcut şifreniz hatalı. Lütfen kontrol edip tekrar deneyiniz.');
       }
       if (userAcc) {

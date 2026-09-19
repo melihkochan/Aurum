@@ -47,12 +47,17 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onComp
         avatarType,
         avatarColor,
         currencyPreference: currency,
+        onboardingCompleted: true,
       });
 
       updatePreferences({
         currency,
         name: fullName.trim().split(' ')[0],
       });
+
+      try {
+        localStorage.setItem('aurum_last_user_name', fullName.trim().split(' ')[0]);
+      } catch {}
 
       onComplete();
     } catch (err: any) {
