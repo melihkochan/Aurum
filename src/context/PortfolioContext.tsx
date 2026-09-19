@@ -409,6 +409,28 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     StorageService.saveRecurring(recurringTransactions);
   }, [recurringTransactions]);
 
+  useEffect(() => {
+    StorageService.savePreferences(preferences);
+  }, [preferences]);
+
+  useEffect(() => {
+    StorageService.saveGoals(goals);
+  }, [goals]);
+
+  useEffect(() => {
+    StorageService.saveNotes(notes);
+  }, [notes]);
+
+  useEffect(() => {
+    StorageService.saveCustomAssets(customAssets);
+  }, [customAssets]);
+
+  // Sync active theme to root document
+  useEffect(() => {
+    const activeTheme = preferences.theme || 'aurum-gold';
+    document.documentElement.setAttribute('data-theme', activeTheme);
+  }, [preferences.theme]);
+
   // Calculate currency rate based on active currency preference
   const currencyRate = useMemo(() => {
     if (!marketPrices) return 1.0;

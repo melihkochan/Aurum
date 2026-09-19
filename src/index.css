@@ -30,6 +30,32 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
+  /* Theme Ambient Lighting Overrides */
+  html[data-theme="emerald-vault"],
+  html[data-theme="emerald-vault"] body {
+    background-color: #060B08 !important;
+    background-image: 
+      radial-gradient(ellipse 900px 520px at 50% -100px, rgba(16, 185, 129, 0.22) 0%, rgba(5, 150, 105, 0.08) 45%, transparent 75%),
+      radial-gradient(circle 800px at 88% 18%, rgba(20, 184, 166, 0.08) 0%, transparent 55%),
+      radial-gradient(circle 600px at 10% 70%, rgba(16, 185, 129, 0.05) 0%, transparent 60%) !important;
+  }
+
+  html[data-theme="sapphire-night"],
+  html[data-theme="sapphire-night"] body {
+    background-color: #060913 !important;
+    background-image: 
+      radial-gradient(ellipse 900px 520px at 50% -100px, rgba(56, 189, 248, 0.20) 0%, rgba(30, 58, 138, 0.12) 45%, transparent 75%),
+      radial-gradient(circle 800px at 88% 18%, rgba(99, 102, 241, 0.10) 0%, transparent 55%),
+      radial-gradient(circle 600px at 10% 70%, rgba(14, 165, 233, 0.06) 0%, transparent 60%) !important;
+  }
+
+  html[data-theme="obsidian-oled"],
+  html[data-theme="obsidian-oled"] body {
+    background-color: #000000 !important;
+    background-image: 
+      radial-gradient(ellipse 900px 400px at 50% -100px, rgba(255, 255, 255, 0.05) 0%, transparent 70%) !important;
+  }
+
   /* Disable default browser number input stepper arrows */
   input[type="number"]::-webkit-outer-spin-button,
   input[type="number"]::-webkit-inner-spin-button {

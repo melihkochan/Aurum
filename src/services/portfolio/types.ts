@@ -171,6 +171,8 @@ export interface PortfolioSnapshot {
   investedCapital: number;
 }
 
+export type AurumThemeId = 'aurum-gold' | 'emerald-vault' | 'sapphire-night' | 'obsidian-oled';
+
 export interface UserPreferences {
   name: string;
   currency: 'TRY' | 'USD' | 'EUR';
@@ -178,4 +180,5 @@ export interface UserPreferences {
   autoRefreshEnabled: boolean;
   refreshIntervalSeconds: number;
   performancePeriod: PerformancePeriod;
+  theme?: AurumThemeId;
 }

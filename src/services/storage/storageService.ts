@@ -424,6 +424,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   autoRefreshEnabled: true,
   refreshIntervalSeconds: 45,
   performancePeriod: 'daily',
+  theme: 'aurum-gold',
 };
 
 export const CATEGORY_NAME_TR_MAP: Record<string, string> = {

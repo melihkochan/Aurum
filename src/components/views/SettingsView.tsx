@@ -448,17 +448,89 @@ export const SettingsView: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Theme Selector */}
-                <div className="pt-6 flex items-center justify-between">
+                {/* Theme & Color Atmosphere Selector */}
+                <div className="pt-6 space-y-3">
                   <div>
-                    <span className="text-sm font-bold text-white block">Tema Modu</span>
+                    <span className="text-sm font-bold text-white block">Tema & Renk Atmosferi</span>
                     <span className="text-xs text-zinc-400 mt-0.5 block">
-                      AURUM koyu lüks tasarım standartlarına göre optimize edilmiştir
+                      AURUM koyu lüks standartlarına göre optimize edilmiş ortam aydınlatması ve renk temaları
                     </span>
                   </div>
-                  <span className="text-xs font-bold px-3 py-1 rounded-lg bg-white/[0.04] border border-white/[0.08] text-[#E5B85C]">
-                    Dark (Aktif)
-                  </span>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                    {[
+                      {
+                        id: 'aurum-gold' as const,
+                        name: 'Aurum Gold',
+                        tag: 'Klasik Lüks',
+                        desc: 'Derin obsidiyen ve sıcak altın ışıldaması',
+                        orbColor: 'from-[#F3C969] via-[#E5B85C] to-[#B38728]',
+                        borderActive: 'border-[#E5B85C] bg-[#E5B85C]/10',
+                        accent: 'text-[#E5B85C]',
+                      },
+                      {
+                        id: 'emerald-vault' as const,
+                        name: 'Emerald Vault',
+                        tag: 'Swiss Banking',
+                        desc: 'Zümrüt yeşili servet ve fon atmosferi',
+                        orbColor: 'from-emerald-400 via-emerald-500 to-teal-700',
+                        borderActive: 'border-emerald-500 bg-emerald-500/10',
+                        accent: 'text-emerald-400',
+                      },
+                      {
+                        id: 'sapphire-night' as const,
+                        name: 'Sapphire Night',
+                        tag: 'Wall Street',
+                        desc: 'Gece mavisi ve safir finans ambiyansı',
+                        orbColor: 'from-sky-400 via-blue-500 to-indigo-700',
+                        borderActive: 'border-sky-500 bg-sky-500/10',
+                        accent: 'text-sky-400',
+                      },
+                      {
+                        id: 'obsidian-oled' as const,
+                        name: 'Obsidian OLED',
+                        tag: 'Saf Karbon',
+                        desc: 'Minimalist, pil dostu tam siyah derinlik',
+                        orbColor: 'from-zinc-400 via-zinc-600 to-zinc-900',
+                        borderActive: 'border-white/40 bg-white/5',
+                        accent: 'text-white',
+                      },
+                    ].map((th) => {
+                      const isSelected = (preferences.theme || 'aurum-gold') === th.id;
+                      return (
+                        <div
+                          key={th.id}
+                          onClick={() => updatePreferences({ theme: th.id })}
+                          className={`p-3.5 rounded-2xl border transition-all cursor-pointer select-none flex items-center justify-between ${
+                            isSelected
+                              ? `${th.borderActive} shadow-[0_4px_20px_rgba(0,0,0,0.4)]`
+                              : 'bg-white/[0.02] border-white/[0.06] hover:bg-white/[0.04] hover:border-white/[0.12]'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className={`w-8 h-8 rounded-full bg-gradient-to-tr ${th.orbColor} p-0.5 shadow-md flex items-center justify-center shrink-0`}>
+                              <div className="w-full h-full rounded-full bg-black/40 flex items-center justify-center">
+                                {isSelected && <Check className="w-3.5 h-3.5 text-white" />}
+                              </div>
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs font-bold text-white">{th.name}</span>
+                                <span className="text-[9px] px-1.5 py-0.2 rounded-md bg-white/[0.06] text-zinc-400 font-mono">
+                                  {th.tag}
+                                </span>
+                              </div>
+                              <span className="text-[11px] text-zinc-400 block mt-0.5">
+                                {th.desc}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className={`w-2 h-2 rounded-full ${isSelected ? th.accent.replace('text-', 'bg-') : 'bg-transparent'}`} />
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             </div>
